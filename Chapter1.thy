@@ -2,6 +2,7 @@ theory Chapter1
   imports Complex_Main
 
 begin
+declare [[smt_timeout = 120]]
 section \<open>Preface\<close>
 text \<open>
 \spike
@@ -222,9 +223,13 @@ to hack this by breaking lines into "ordinary" and "vertical", alas.   \<close>
   definition a2parallel:: "a2ln  \<Rightarrow> a2ln \<Rightarrow> bool" (infix "a2||" 50)
       where "l a2|| m \<longleftrightarrow> (l = m \<or>  (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m)))"
   text\<open> Notice that I've written the definition of parallel for the euclidean affine plane
-as a forall rather than exists. I think this might make things easier. \<close>
-  
-  text\<open> Now some small lemmas, basically establishing the three axioms \<close>
+as a forall rather than exists. I think this might make things easier. 
+\caleb
+ We include this small definition of collinearity to make some of the upcoming
+proofs easier.\<close>
+   definition a2collinear:: "a2pt \<Rightarrow> a2pt \<Rightarrow> a2pt \<Rightarrow> bool" 
+    where "a2collinear A B C \<longleftrightarrow> (\<exists> l. a2meets A l \<and> a2meets B l \<and> a2meets C l)"
+  text\<open>\done Now some small lemmas, basically establishing the three axioms \<close>
   text\<open> I'm going to venture into a new style of writing theorems and proofs, one that's
 particularly applicable when you're showing something exists by constructing it. Here is 
 an example in the case of real numbers: if r < s, then there's a real number strictly between
@@ -254,17 +259,49 @@ then makes clear what we're going to actually show. We will treat this as a patt
 
 A note about naming: Everything related to real-affine-2-space will be written with a prefix
 ``A2''. When we want to state axiom 3 for A2, we'll write ``A2\_a3''. Sometimes we'll need some preliminary
-results, and we'll append an ``a'' or ``b'' or ``c'', etc., before stating the main result. \<close>
+results, and we'll append an ``a'' or ``b'' or ``c'', etc., before stating the main result. \caleb \<close>
 
 theorem A2_a1a: 
   fixes P :: a2pt
   fixes Q
   assumes "P \<noteq> Q"
   shows "\<exists> ls . a2meets P ls \<and> a2meets Q ls"
-  sorry
+proof (cases P, cases Q)
+  fix x0 y0 assume P: "P = (A2Point x0 y0)"
+  fix x1 y1 assume Q: "Q = (A2Point x1 y1)" 
+  show ?thesis
+  proof (cases "(x0 = x1)")
+    case True
+    assume f: "x0 = x1"
+    have x1x0: "x1 = x0" by (simp add: True)
+    let ?ll = "A2Vertical x0"
+    have m1:  "a2meets P ?ll" using P  by simp
+    have m2:  "a2meets Q ?ll" using Q  by (simp add: x1x0)
+    obtain l where r: "a2meets P l \<and> a2meets Q l" using m1 m2  by auto
+    thus ?thesis by auto (* We've proved the theorem...in the case where x0 = x1 *)
+                             
+  next
+    case False (* Now on to the other case, where x0 \<noteq> x1; we'll need to divide by x1 - x0...*)
+    assume f: "x0 \<noteq> x1"
+(*      have x1x0: "x0 \<noteq> x1" by (simp add: f) *)
+    have x0x1: "x1 \<noteq> x0" using f by blast
+    let ?ll = "A2Ordinary ((y1-y0)/(x1-x0))  (y0 - ((y1-y0)/(x1-x0))*x0) "
+    have m3:  "a2meets P ?ll" using P  by simp
+    have m4:  "a2meets Q ?ll" 
+    proof -
+      have s0: "y1*(x1 - x0) = (y1-y0)* x1 + (y0 * (x1 - x0) - (y1-y0) *x0)" 
+      by argo
+      have s1: "y1*(x1 - x0)/(x1 - x0) = (y1-y0)* x1/(x1 - x0) + (y0 * (x1 - x0)/(x1 - x0) - (y1-y0)/(x1 - x0) *x0)" using s0 by argo
+      have s2: "y1 = (y1-y0)* x1/(x1 - x0) + (y0 - (y1-y0)/(x1 - x0) *x0)" using s1 x0x1 by auto
+      have s3: "y1 = ((y1-y0)/(x1 - x0))*x1 + (y0 - (y1-y0)/(x1 - x0) * x0)" using s2 by auto
+      thus ?thesis using s3 Q a2meets.simps(1) by blast
+    qed
+    show ?thesis using m3 m4 by blast
+  qed
+qed
 
 
-text\<open>For this next theorem, it might make sense to phrase it as "P notequal Q lets us derive a unique
+text\<open>\done For this next theorem, it might make sense to phrase it as "P notequal Q lets us derive a unique
 line l such that..."
 but that would require proving the existence of l (which we just did in the previous lemma) and
 then proving that it's unique. Instead, we can just say that if l and m both contain the 
@@ -305,7 +342,43 @@ lemma A2_a2a (*existence*):
   fixes l 
   assumes "\<not> a2meets P l"
   shows  "\<exists>k. a2meets P k \<and> l a2|| k"
-    sorry
+    proof (cases l)
+    case A2Ordinary
+    obtain x0 y0 where P: "P = (A2Point x0 y0)"
+      using a2pt.exhaust by blast
+    obtain lm lb where lm: "l = (A2Ordinary lm lb)"
+      by (simp add: A2Ordinary)
+    obtain mb where mb: "mb = y0 - lm * x0" 
+      by simp
+    obtain k where k: "k = (A2Ordinary lm mb)"
+      by simp
+    have l_par_m: "l a2|| k"
+      using a2meets.elims(2) a2parallel_def lm k by force
+    have "a2meets P k"
+      using P k mb by auto
+    have "l a2|| k \<and> a2meets P k"
+      using \<open>a2meets (P::a2pt) (k::a2ln)\<close> l_par_m by blast
+    have "\<exists> k. l a2|| k \<and> a2meets P k"
+      using \<open>(l::a2ln) a2|| (k::a2ln) \<and> a2meets (P::a2pt) k\<close> by blast
+    thus ?thesis
+      by auto
+  next
+    case A2Vertical
+    obtain x0 y0 where P: "P = (A2Point x0 y0)"
+      using a2pt.exhaust by blast
+    obtain lx where lx: "l = (A2Vertical lx)"
+      by (simp add: A2Vertical)
+    have "lx \<noteq> x0"
+      using P a2meets.simps(2) assms lx by blast
+    obtain m where m: "m = (A2Vertical x0)"
+      by simp
+    have "l a2|| m"
+      using a2meets.elims(2) a2parallel_def lx m by force
+    have "a2meets P m"
+      by (simp add: P m)
+    thus ?thesis
+      using \<open>(l::a2ln) a2|| (m::a2ln)\<close> \<open>a2meets (P::a2pt) (m::a2ln)\<close> by blast
+  qed
 
 text \<open> At this point, I went down a rabbit hole searching for proofs of the other half
 of axiom 2, and kept getting into trouble when dealing with the (pretty simple) algebra 
@@ -325,7 +398,7 @@ lemma A2_parallel_0:
   fixes P
   assumes nomeet: "\<not> (\<exists>P . a2meets P l \<and> a2meets P m)"
   shows "l a2|| m"
-  sorry
+  using a2parallel_def nomeet by auto
 
 text \<open> a vertical and ordinary line cannot be parallel  \<close>
 lemma A2_basics_1: 
@@ -334,7 +407,14 @@ lemma A2_basics_1:
   assumes lo: "l = A2Vertical x"
   assumes mo: "m = A2Ordinary s b "
   shows lm_noparr : "\<not> (l a2|| m)"
-  sorry
+proof -
+  obtain P where P: "P = (A2Point x (x * s + b)) \<and> a2meets P m"
+    using mo by force
+  have "a2meets P l"
+    by (simp add: P lo)
+  thus ?thesis
+    using P a2parallel_def lo mo by blast
+qed
 
 text \<open>if two ordinary lines have different slopes, then they intersect  \<close>
 lemma A2_basics_2: 
@@ -344,7 +424,36 @@ lemma A2_basics_2:
   assumes mo: "m = A2Ordinary s2 b2"
   assumes sdiff: "s1 \<noteq> s2"
   shows lm_noparr2 : "\<not> (l a2|| m)"
-  sorry
+proof - 
+  obtain x where x: "x = (b2 - b1) / (s1 - s2)"
+    by simp
+  obtain y where y: "y = s1 * x + b1"
+    by simp
+  obtain P where P: "P = (A2Point x y)"
+    by simp
+  have pl: "a2meets P l"
+    by (simp add: P lo y)
+  have eq1: "s1 * x + b1 = s1 * (b2 - b1) / (s1 - s2) + b1" by (simp add: x)
+  have eq2: "s1 * (b2 - b1) / (s1 - s2) + b1 = (b2 * s1 - b1 * s1) / (s1 - s2) + b1"
+    by argo
+  have eq3: "(b2 * s1 - b1 * s1) / (s1 - s2) + b1 = (b2 * s1 - b1 * s1) / (s1 - s2) + (s1 * b1 - s2 * b1) / (s1 - s2)" 
+    by (simp add: mult_diff_mult sdiff)
+  have eq4: "(b2 * s1 - b1 * s1) / (s1 - s2) + (s1 * b1 - s2 * b1) / (s1 - s2) =  (s1 * b2 - b1 * s2) / (s1 - s2)" 
+    by argo
+  have eq5: "s2 * x + b2 = s2 * (b2 - b1) / (s1 - s2) + b2" by (simp add: x)
+  have eq6: "s2 * (b2 - b1) / (s1 - s2) + b2 = (b2 * s2 - b1 * s2) / (s1 - s2) + b2"
+    by argo
+  have eq7: "(b2 * s2 - b1 * s2) / (s1 - s2) + b2 = (b2 * s2 - b1 * s2) / (s1 - s2) + (s1 * b2 - s2 * b2) / (s1 - s2)" 
+    by (simp add: mult_diff_mult sdiff)
+  have eq8: "(b2 * s2 - b1 * s2) / (s1 - s2) + (s1 * b2 - s2 * b2) / (s1 - s2) =  (s1 * b2 - b1 * s2) / (s1 - s2)"
+    by argo
+  have eq9: "y = s2 * x + b2"
+    by (simp add: eq1 eq2 eq3 eq4 eq5 eq6 eq7 eq8 y)
+  have pm: "a2meets P m" 
+    by (simp add: P mo eq9)
+  thus ?thesis
+    using a2parallel_def lo mo pl sdiff by auto   
+qed
 
 text\<open> Trying to prove axiom 2 directly seems near impossible. Let's start with 
 something simpler: if l and m are parallel, and l is vertical, so is m (and similarly
@@ -356,7 +465,8 @@ lemma A2_parallel_1:
   assumes lo: "l = A2Vertical x2 "
   assumes lm_parr : "l a2|| m"
   shows "\<exists>s2. m = A2Vertical s2 "
-    sorry
+  by (metis A2_basics_1 a2ln.exhaust lm_parr lo)
+    
 
 text\<open> Let's do the other half of that: if l is ordinary, and m is parallel, then m is ordinary \<close>
 lemma A2_parallel_2: 
@@ -365,7 +475,8 @@ lemma A2_parallel_2:
   assumes lo: "l = A2Ordinary s1 b1 "
   assumes lm_parr : "l a2|| m"
   shows "\<exists>s2 b2. m = A2Ordinary s2 b2 "
-  sorry
+  by (metis A2_basics_1 a2ln.exhaust a2parallel_def lm_parr lo)
+  
 
 text\<open> And a third half: if l and m are parallel and ordinary, them their slopes are the same \<close>
 lemma A2_parallel_3: 
@@ -374,8 +485,9 @@ lemma A2_parallel_3:
   assumes lo: "l = A2Ordinary s1 b1 "
   assumes mo: "m = A2Ordinary s2 b2 "
   assumes lm: "l a2|| m"
-  shows "s1 = s2 " 
-  sorry 
+  shows "s1 = s2"
+  using A2_basics_2 lm lo mo by blast 
+  
 
 text\<open>  Recall that axiom 2 states that there's a unique m 
 through P, parallel to l.    
@@ -393,8 +505,29 @@ lemma A2_a2b:
   assumes lm_parr : "l a2|| m"
   assumes lk_parr : "l a2|| k"
   shows "m = k"
-  sorry
-
+proof (cases m)
+  case (A2Ordinary x11 x12)
+  obtain xl yl where l_ord: "l = (A2Ordinary xl yl)"
+    by (metis A2Ordinary A2_basics_1 a2meets.elims(3) lm_parr pl)
+  obtain xk yk where k_ord: "k = (A2Ordinary xk yk)"
+    using A2_parallel_2 l_ord lk_parr by blast
+  have equality: "xl = xk \<and> x11 = xl"
+    using A2Ordinary A2_basics_2 k_ord l_ord lk_parr lm_parr by force 
+  have m_par_k: "m a2|| k"
+    using A2Ordinary a2meets.elims(2) a2parallel_def equality k_ord by force
+  then show ?thesis
+    using a2parallel_def pk pm by blast
+next
+  case (A2Vertical x2)
+  obtain xl where l_vert: "l = (A2Vertical xl)"
+    by (metis A2Vertical A2_parallel_2 a2ln.distinct(1) a2meets.elims(3) lm_parr pl)
+  obtain xk where k_vert: "k = (A2Vertical xk)"
+    using A2_parallel_1 l_vert lk_parr by blast
+  have equal: "xk = x2"
+    by (metis A2Vertical a2meets.elims(2) a2meets.simps(2) k_vert pk pm)
+  then show ?thesis
+    using A2Vertical k_vert by auto
+qed
 lemma A2_a2: 
   fixes P
   fixes l
@@ -404,8 +537,8 @@ lemma A2_a2:
 
 
 
- (* lemma A2_a3:  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<nexists> m. a2meets P m \<and> a2meets Q m \<and> a2meets R m)"
-    sorry*)
+ lemma A2_a3:  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<nexists> m. a2meets P m \<and> a2meets Q m \<and> a2meets R m)"
+    sorry
 
 lemma A2_a3x:
   shows "\<not> (\<exists> m. a2meets (A2Point 0 0)  m \<and> a2meets (A2Point 0 1) m \<and> a2meets (A2Point 1 0) m)"
