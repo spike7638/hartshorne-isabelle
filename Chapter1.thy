@@ -324,7 +324,30 @@ lemma A2_a1b:
   assumes pm : "a2meets P m"
   assumes qm : "a2meets Q m"
   shows "l = m"
-  sorry
+ proof (cases P, cases Q)
+  fix x0 y0 assume P: "P = (A2Point x0 y0)"
+  fix x1 y1 assume Q: "Q = (A2Point x1 y1)"
+  show ?thesis
+  proof (cases "x0 = x1")
+    case True
+    assume f: "x0 = x1"
+    obtain l where l: "l = A2Vertical x0"
+      by simp
+    obtain m where m: "m = A2Vertical x0" 
+      by simp
+    then show ?thesis 
+      by (smt P Q a2ln.inject(1) a2meets.elims(2) a2pt.inject f pl pm pq ql qm)
+  next
+    case False
+    assume f: "x0 \<noteq> x1"
+    obtain l ml mb where l: "l = A2Ordinary ml mb" 
+      by simp
+    obtain m  where m: "m = A2Ordinary ml mb" 
+      by simp
+    then show ?thesis 
+      by (smt P Q a2meets.elims(2) a2meets.simps(1) a2meets.simps(2) a2pt.inject crossproduct_noteq f pl pm ql qm)
+  qed
+qed
 
 lemma A2_a1:
   fixes P :: a2pt
@@ -548,14 +571,14 @@ lemma A2_a3y: (* alternative formulation -- harder to read, easier to prove *)
   assumes "a2meets (A2Point 0 0) m"
   assumes "a2meets (A2Point 0 1) m"
   shows "\<not> (a2meets (A2Point 1 0) m)"
-  sorry
+  using A2_a3x assms(1) assms(2) by blast
 
 lemma A2_a3z1: (* alternative formulation -- harder to read, easier to prove *)
   fixes m
   assumes "a2meets (A2Point 0 0) m"
   assumes "a2meets (A2Point 0 1) m"
   shows "m = (A2Vertical 0)"
-  sorry
+  by (smt a2ln.inject(1) a2meets.elims(2) a2pt.inject assms(1) assms(2))
 
 text\<open> At this point we've established that the Cartesian Plane satisfies Cartesian 
 versions of the three axioms, etc., but it'd be nice to be able to say that as
