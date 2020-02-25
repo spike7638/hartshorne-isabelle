@@ -151,43 +151,13 @@ order.
 \done\<close>
 
   lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
-  proof -
-    fix l :: "'line" and m :: "'line"
-    assume one_direction: "l || m"
-    show "m || l"
-    proof -
-      have "(l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))" 
-        using one_direction parallel_def by auto
-      from this have "(m = l \<or> \<not> (\<exists> P. meets P m  \<and> meets P l))"
-        by auto
-      thus "m || l"
-        by (simp add: parallel_def)
-    qed
-  qed
+    sorry
 
   lemma reflexive_parallel: "l || l"
-  proof - 
-    have "l = l" 
-      by auto
-    thus "l || l"
-      using parallel_def by auto
-  qed
+    sorry
 
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
-  proof - 
-    fix l :: "'line" and m :: "'line" and n :: "'line"
-    assume lm: "l || m"
-    assume mn: "m || n"
-    show "l || n"
-    proof -
-      have "(l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))"
-        using lm parallel_def by blast
-      have "(m = n \<or> \<not> (\<exists> P. meets P m  \<and> meets P n))" 
-        using mn parallel_def by blast
-      thus "l || n"
-        by (metis a2 lm parallel_def)
-    qed
-  qed
+    sorry
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
@@ -199,12 +169,7 @@ theorem (in affine_plane_data) parallel_alt:
   assumes "l \<noteq> m"
   assumes "\<forall>P. (\<not>meets P l) \<or> (\<not> meets P m)"
   shows "l || m"
-proof -
-  have "\<not> (\<exists> P. meets P l \<and> meets P m)"
-    using assms(2) by auto
-  thus "l || m" 
-      using assms(2) parallel_def by auto
-qed
+  sorry
 
 text  \<open>\begin{hartshorne}
 \prop[1.2] Two distinct lines have at most one point in common.
@@ -258,8 +223,13 @@ to hack this by breaking lines into "ordinary" and "vertical", alas.   \<close>
   definition a2parallel:: "a2ln  \<Rightarrow> a2ln \<Rightarrow> bool" (infix "a2||" 50)
       where "l a2|| m \<longleftrightarrow> (l = m \<or>  (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m)))"
   text\<open> Notice that I've written the definition of parallel for the euclidean affine plane
-as a forall rather than exists. I think this might make things easier.\<close>
-  text\<open>Now some small lemmas, basically establishing the three axioms \<close>
+as a forall rather than exists. I think this might make things easier. 
+\caleb
+ We include this small definition of collinearity to make some of the upcoming
+proofs easier.\<close>
+   definition a2collinear:: "a2pt \<Rightarrow> a2pt \<Rightarrow> a2pt \<Rightarrow> bool" 
+    where "a2collinear A B C \<longleftrightarrow> (\<exists> l. a2meets A l \<and> a2meets B l \<and> a2meets C l)"
+  text\<open>\done Now some small lemmas, basically establishing the three axioms \<close>
   text\<open> I'm going to venture into a new style of writing theorems and proofs, one that's
 particularly applicable when you're showing something exists by constructing it. Here is 
 an example in the case of real numbers: if r < s, then there's a real number strictly between
@@ -301,30 +271,30 @@ proof (cases P, cases Q)
   fix x1 y1 assume Q: "Q = (A2Point x1 y1)" 
   show ?thesis
   proof (cases "(x0 = x1)")
-
-    case True (* Case where x0 = x1 *)
+    case True
+    assume f: "x0 = x1"
+    have x1x0: "x1 = x0" by (simp add: True)
     let ?ll = "A2Vertical x0"
-    have m1:  "a2meets P ?ll" using P by simp
-    have m2:  "a2meets Q ?ll" using Q True by simp
-    have "a2meets P ?ll \<and> a2meets Q ?ll" using m1 m2 by auto
-    thus ?thesis by auto
-  
+    have m1:  "a2meets P ?ll" using P  by simp
+    have m2:  "a2meets Q ?ll" using Q  by (simp add: x1x0)
+    obtain l where r: "a2meets P l \<and> a2meets Q l" using m1 m2  by auto
+    thus ?thesis by auto (* We've proved the theorem...in the case where x0 = x1 *)
+                             
   next
-    case False (* Case where x0 \<noteq> x1*) 
-    let ?rise = "y1 - y0"
-    let ?run  = "x1 - x0"
-    let ?m    = "?rise/?run"
-    let ?b    = "y0 - ?m*x0"
-    let ?ll   = "A2Ordinary ?m ?b"
-
-    have m3: "a2meets P ?ll" using P by simp
-    have m4: "a2meets Q ?ll"
+    case False (* Now on to the other case, where x0 \<noteq> x1; we'll need to divide by x1 - x0...*)
+    assume f: "x0 \<noteq> x1"
+(*      have x1x0: "x0 \<noteq> x1" by (simp add: f) *)
+    have x0x1: "x1 \<noteq> x0" using f by blast
+    let ?ll = "A2Ordinary ((y1-y0)/(x1-x0))  (y0 - ((y1-y0)/(x1-x0))*x0) "
+    have m3:  "a2meets P ?ll" using P  by simp
+    have m4:  "a2meets Q ?ll" 
     proof -
-      have s0: "y1*?run/?run = ?m*x1 + (y0 * ?run/?run - ?m*x0)"
-        by argo
-      have s1: "y1 = ?m*x1 + ?b" using s0 False by auto
-      thus ?thesis using s1 Q a2meets.simps(1) by blast
-
+      have s0: "y1*(x1 - x0) = (y1-y0)* x1 + (y0 * (x1 - x0) - (y1-y0) *x0)" 
+      by argo
+      have s1: "y1*(x1 - x0)/(x1 - x0) = (y1-y0)* x1/(x1 - x0) + (y0 * (x1 - x0)/(x1 - x0) - (y1-y0)/(x1 - x0) *x0)" using s0 by argo
+      have s2: "y1 = (y1-y0)* x1/(x1 - x0) + (y0 - (y1-y0)/(x1 - x0) *x0)" using s1 x0x1 by auto
+      have s3: "y1 = ((y1-y0)/(x1 - x0))*x1 + (y0 - (y1-y0)/(x1 - x0) * x0)" using s2 by auto
+      thus ?thesis using s3 Q a2meets.simps(1) by blast
     qed
     show ?thesis using m3 m4 by blast
   qed
@@ -341,7 +311,7 @@ conclude that axiom 1 is true (which we'll do in a final theorem).
 This is arguably the ugliest theorem in the bunch, because it involves four cases (one each for 
 l and m being ordinary or vertical). Once again, we start by providing names for the constructor
 arguments for P and Q:
- \seiji\<close>
+ \<close>
 
 lemma A2_a1b: 
   fixes P :: a2pt
@@ -354,22 +324,30 @@ lemma A2_a1b:
   assumes pm : "a2meets P m"
   assumes qm : "a2meets Q m"
   shows "l = m"
-
-proof (cases P, cases Q)
-    fix x0 y0 assume P: "P = (A2Point x0 y0)"
-    fix x1 y1 assume Q: "Q = (A2Point x1 y1)" 
-    show ?thesis
-    proof (cases "(x0 = x1)")
-      case True
-      then show ?thesis 
-        by (smt P Q a2ln.inject(1) a2meets.elims(2) a2meets.simps(2) pl pm pq ql qm)
-    next
-      case False
-      then show ?thesis
-        by (smt P Q a2ln.inject(1) a2meets.elims(2) a2meets.simps(2) a2pt.inject crossproduct_noteq pl pm ql qm)
-    qed
+ proof (cases P, cases Q)
+  fix x0 y0 assume P: "P = (A2Point x0 y0)"
+  fix x1 y1 assume Q: "Q = (A2Point x1 y1)"
+  show ?thesis
+  proof (cases "x0 = x1")
+    case True
+    assume f: "x0 = x1"
+    obtain l where l: "l = A2Vertical x0"
+      by simp
+    obtain m where m: "m = A2Vertical x0" 
+      by simp
+    then show ?thesis 
+      by (smt P Q a2ln.inject(1) a2meets.elims(2) a2pt.inject f pl pm pq ql qm)
+  next
+    case False
+    assume f: "x0 \<noteq> x1"
+    obtain l ml mb where l: "l = A2Ordinary ml mb" 
+      by simp
+    obtain m  where m: "m = A2Ordinary ml mb" 
+      by simp
+    then show ?thesis 
+      by (smt P Q a2meets.elims(2) a2meets.simps(1) a2meets.simps(2) a2pt.inject crossproduct_noteq f pl pm ql qm)
   qed
-
+qed
 
 lemma A2_a1:
   fixes P :: a2pt
@@ -380,44 +358,52 @@ proof -
   show ?thesis using pq A2_a1a A2_a1b by auto
 qed
 
-text \<open>\done Whew! We've proved axiom 1 for the real affine plane. On to Axiom 2. This one's 
-a little trickier because we're proving a conjunction. \caleb\<close>
+text \<open> Whew! We've proved axiom 1 for the real affine plane. On to Axiom 2. This one's 
+a little trickier because we're proving a conjunction. \<close>
 lemma A2_a2a (*existence*):
   fixes P :: a2pt 
   fixes l 
   assumes "\<not> a2meets P l"
   shows  "\<exists>k. a2meets P k \<and> l a2|| k"
-
-proof (cases P)
-  fix x0 y0 assume P: "P = (A2Point x0 y0)"
-  have existence: "\<exists>m. l a2|| m \<and> a2meets P m"
-  proof (cases l)
-    case (A2Vertical x1)
-    obtain m where mvert: "m = (A2Vertical x0)" 
+    proof (cases l)
+    case A2Ordinary
+    obtain x0 y0 where P: "P = (A2Point x0 y0)"
+      using a2pt.exhaust by blast
+    obtain lm lb where lm: "l = (A2Ordinary lm lb)"
+      by (simp add: A2Ordinary)
+    obtain mb where mb: "mb = y0 - lm * x0" 
       by simp
-    have lparallelm: "a2parallel l m"
-      by (metis A2Vertical a2meets.simps(2) a2parallel_def a2pt.exhaust mvert)
-    have Ponm: "a2meets P m"
-      by (simp add: P mvert)
-    then show ?thesis
-      using lparallelm by auto
+    obtain k where k: "k = (A2Ordinary lm mb)"
+      by simp
+    have l_par_m: "l a2|| k"
+      using a2meets.elims(2) a2parallel_def lm k by force
+    have "a2meets P k"
+      using P k mb by auto
+    have "l a2|| k \<and> a2meets P k"
+      using \<open>a2meets (P::a2pt) (k::a2ln)\<close> l_par_m by blast
+    have "\<exists> k. l a2|| k \<and> a2meets P k"
+      using \<open>(l::a2ln) a2|| (k::a2ln) \<and> a2meets (P::a2pt) k\<close> by blast
+    thus ?thesis
+      by auto
   next
-    case (A2Ordinary slope intercept)
-    obtain intercept2 where a: "intercept2 = y0 - slope * x0" 
+    case A2Vertical
+    obtain x0 y0 where P: "P = (A2Point x0 y0)"
+      using a2pt.exhaust by blast
+    obtain lx where lx: "l = (A2Vertical lx)"
+      by (simp add: A2Vertical)
+    have "lx \<noteq> x0"
+      using P a2meets.simps(2) assms lx by blast
+    obtain m where m: "m = (A2Vertical x0)"
       by simp
-    obtain line2 where eq: "line2 = (A2Ordinary slope intercept2)" 
-      by simp
-    have PonLine2: "a2meets P line2" try
-      by (simp add: P a eq)
-    then show ?thesis
-      by (smt A2Ordinary a2meets.elims(2) a2meets.simps(1) a2parallel_def eq) 
+    have "l a2|| m"
+      using a2meets.elims(2) a2parallel_def lx m by force
+    have "a2meets P m"
+      by (simp add: P m)
+    thus ?thesis
+      using \<open>(l::a2ln) a2|| (m::a2ln)\<close> \<open>a2meets (P::a2pt) (m::a2ln)\<close> by blast
   qed
-  thus ?thesis
-    by auto 
-qed
 
 text \<open> At this point, I went down a rabbit hole searching for proofs of the other half
-
 of axiom 2, and kept getting into trouble when dealing with the (pretty simple) algebra 
 of straight lines. So I backed off and proved a bunch of small lemmas, partly as practice 
 at proving things, and partly to give Isabelle a helping hand when it came to more complicated
@@ -427,7 +413,7 @@ the same; if two ordinary lines with the same slope intersect, then they're the 
 ordinary lines are parallel and intersect, then they're the same.  \<close>
 
 text\<open> Let's start with something dead simple: the other form of parallelism: if 
-there's no P meeting both l and m, then they're parallel. \caleb\<close>
+there's no P meeting both l and m, then they're parallel. \<close>
 
 lemma A2_parallel_0: 
   fixes l
@@ -435,11 +421,9 @@ lemma A2_parallel_0:
   fixes P
   assumes nomeet: "\<not> (\<exists>P . a2meets P l \<and> a2meets P m)"
   shows "l a2|| m"
-
   using a2parallel_def nomeet by auto
 
-
-text \<open>\done a vertical and ordinary line cannot be parallel \caleb \<close>
+text \<open> a vertical and ordinary line cannot be parallel  \<close>
 lemma A2_basics_1: 
   fixes l
   fixes m
@@ -447,17 +431,15 @@ lemma A2_basics_1:
   assumes mo: "m = A2Ordinary s b "
   shows lm_noparr : "\<not> (l a2|| m)"
 proof -
-
   obtain P where P: "P = (A2Point x (x * s + b)) \<and> a2meets P m"
     using mo by force
   have "a2meets P l"
     by (simp add: P lo)
   thus ?thesis
     using P a2parallel_def lo mo by blast
-
 qed
 
-text \<open>\done if two ordinary lines have different slopes, then they intersect \caleb \<close>
+text \<open>if two ordinary lines have different slopes, then they intersect  \<close>
 lemma A2_basics_2: 
   fixes l
   fixes m
@@ -496,9 +478,9 @@ proof -
     using a2parallel_def lo mo pl sdiff by auto   
 qed
 
-text\<open>\done Trying to prove axiom 2 directly seems near impossible. Let's start with 
+text\<open> Trying to prove axiom 2 directly seems near impossible. Let's start with 
 something simpler: if l and m are parallel, and l is vertical, so is m (and similarly
-for ordinary) \caleb\<close>
+for ordinary) \<close>
 
 lemma A2_parallel_1: 
   fixes l
@@ -506,10 +488,8 @@ lemma A2_parallel_1:
   assumes lo: "l = A2Vertical x2 "
   assumes lm_parr : "l a2|| m"
   shows "\<exists>s2. m = A2Vertical s2 "
-
   by (metis A2_basics_1 a2ln.exhaust lm_parr lo)
     
-
 
 text\<open> Let's do the other half of that: if l is ordinary, and m is parallel, then m is ordinary \<close>
 lemma A2_parallel_2: 
@@ -528,14 +508,13 @@ lemma A2_parallel_3:
   assumes lo: "l = A2Ordinary s1 b1 "
   assumes mo: "m = A2Ordinary s2 b2 "
   assumes lm: "l a2|| m"
-
   shows "s1 = s2"
   using A2_basics_2 lm lo mo by blast 
- 
+  
 
-text\<open>\done  Recall that axiom 2 states that there's a unique m 
+text\<open>  Recall that axiom 2 states that there's a unique m 
 through P, parallel to l.    
-We'll phrase that just the way we did A1.a1b: \caleb \seiji\<close>
+We'll phrase that just the way we did A1.a1b: \<close>
 (* a2: "\<not> meets P l \<Longrightarrow> \<exists>!m. l || m \<and> meets P m" *)
 
 lemma A2_a2b: 
@@ -581,28 +560,12 @@ lemma A2_a2:
 
 
 
-lemma A2_a3:
-  shows  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<nexists> m. a2meets P m \<and> a2meets Q m \<and> a2meets R m)"
-proof -
-  obtain P where P: "P = (A2Point 0 0)" by simp
-  obtain Q where Q: "Q = (A2Point 1 0)" by simp
-  obtain R where R: "R = (A2Point 0 1)" by simp
-
-  have "(\<nexists> m. a2meets P m \<and> a2meets Q m \<and> a2meets R m)"
-    by (metis A2_a1b P Q R a2meets.simps(2) a2pt.inject zero_neq_one)
-
-  thus ?thesis
-    by (metis (full_types) A2_a1 A2_a2)
-
-qed
-text\<open>\done \done\<close>
+ lemma A2_a3:  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<nexists> m. a2meets P m \<and> a2meets Q m \<and> a2meets R m)"
+    sorry
 
 lemma A2_a3x:
   shows "\<not> (\<exists> m. a2meets (A2Point 0 0)  m \<and> a2meets (A2Point 0 1) m \<and> a2meets (A2Point 1 0) m)"
-
-  by (metis A2_a1b a2meets.simps(1) a2pt.inject add.right_neutral mult_zero_left zero_neq_one)
-  
-
+  sorry
 lemma A2_a3y: (* alternative formulation -- harder to read, easier to prove *)
   fixes m
   assumes "a2meets (A2Point 0 0) m"
@@ -619,19 +582,12 @@ lemma A2_a3z1: (* alternative formulation -- harder to read, easier to prove *)
 
 text\<open> At this point we've established that the Cartesian Plane satisfies Cartesian 
 versions of the three axioms, etc., but it'd be nice to be able to say that as
-a *structure*, it matches the Isabelle "locale" that we defined. \caleb \seiji 
+a *structure*, it matches the Isabelle "locale" that we defined. 
 \<close>
 
 theorem A2_affine: "affine_plane(a2meets)"
-  unfolding affine_plane_def
-  apply (intro conjI)
-  subgoal using A2_a1a A2_a1b by auto
-  subgoal
-    by (smt A2_a2 a2parallel_def affine_plane_data.parallel_def)
-  apply (simp add: affine_plane_data.collinear_def)
-  using A2_a3 by auto
+  sorry
 
-text\<open>\done \done\<close>
   (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
   (* Every point lies on some line *)
   lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
