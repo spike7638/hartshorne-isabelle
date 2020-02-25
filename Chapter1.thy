@@ -150,13 +150,43 @@ order.
 \done\<close>
 
   lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
-    sorry
+  proof -
+    fix l :: "'line" and m :: "'line"
+    assume one_direction: "l || m"
+    show "m || l"
+    proof -
+      have "(l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))" 
+        using one_direction parallel_def by auto
+      from this have "(m = l \<or> \<not> (\<exists> P. meets P m  \<and> meets P l))"
+        by auto
+      thus "m || l"
+        by (simp add: parallel_def)
+    qed
+  qed
 
   lemma reflexive_parallel: "l || l"
-    sorry
+  proof - 
+    have "l = l" 
+      by auto
+    thus "l || l"
+      using parallel_def by auto
+  qed
 
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
-    sorry
+  proof - 
+    fix l :: "'line" and m :: "'line" and n :: "'line"
+    assume lm: "l || m"
+    assume mn: "m || n"
+    show "l || n"
+    proof -
+      have "(l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))"
+        using lm parallel_def by blast
+      have "(m = n \<or> \<not> (\<exists> P. meets P m  \<and> meets P n))" 
+        using mn parallel_def by blast
+      thus "l || n"
+        by (metis a2 lm parallel_def)
+    qed
+  qed
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
@@ -168,7 +198,12 @@ theorem (in affine_plane_data) parallel_alt:
   assumes "l \<noteq> m"
   assumes "\<forall>P. (\<not>meets P l) \<or> (\<not> meets P m)"
   shows "l || m"
-  sorry
+proof -
+  have "\<not> (\<exists> P. meets P l \<and> meets P m)"
+    using assms(2) by auto
+  thus "l || m" 
+      using assms(2) parallel_def by auto
+qed
 
 text  \<open>\begin{hartshorne}
 \prop[1.2] Two distinct lines have at most one point in common.
@@ -261,7 +296,37 @@ theorem A2_a1a:
   fixes Q
   assumes "P \<noteq> Q"
   shows "\<exists> ls . a2meets P ls \<and> a2meets Q ls"
-  sorry
+proof (cases P, cases Q)
+  fix x0 y0 assume P: "P = (A2Point x0 y0)"
+  fix x1 y1 assume Q: "Q = (A2Point x1 y1)" 
+  show ?thesis
+  proof (cases "(x0 = x1)")
+    case True (* Case where x0 = x1 *)
+    let ?ll = "A2Vertical x0"
+    have m1:  "a2meets P ?ll" using P by simp
+    have m2:  "a2meets Q ?ll" using Q True by simp
+    have "a2meets P ?ll \<and> a2meets Q ?ll" using m1 m2 by auto
+    thus ?thesis by auto
+  
+  next
+    case False (* Case where x0 \<noteq> x1*) 
+    let ?rise = "y1 - y0"
+    let ?run  = "x1 - x0"
+    let ?m    = "?rise/?run"
+    let ?b    = "y0 - ?m*x0"
+    let ?ll   = "A2Ordinary ?m ?b"
+
+    have m3: "a2meets P ?ll" using P by simp
+    have m4: "a2meets Q ?ll"
+    proof -
+      have s0: "y1*?run/?run = ?m*x1 + (y0 * ?run/?run - ?m*x0)"
+        by argo
+      have s1: "y1 = ?m*x1 + ?b" using s0 False by auto
+      thus ?thesis using s1 Q a2meets.simps(1) by blast
+    qed
+    show ?thesis using m3 m4 by blast
+  qed
+qed
 
 
 text\<open>For this next theorem, it might make sense to phrase it as "P notequal Q lets us derive a unique
@@ -287,7 +352,20 @@ lemma A2_a1b:
   assumes pm : "a2meets P m"
   assumes qm : "a2meets Q m"
   shows "l = m"
-  sorry
+proof (cases P, cases Q)
+    fix x0 y0 assume P: "P = (A2Point x0 y0)"
+    fix x1 y1 assume Q: "Q = (A2Point x1 y1)" 
+    show ?thesis
+    proof (cases "(x0 = x1)")
+      case True
+      then show ?thesis 
+        by (smt P Q a2ln.inject(1) a2meets.elims(2) a2meets.simps(2) pl pm pq ql qm)
+    next
+      case False
+      then show ?thesis
+        by (smt P Q a2ln.inject(1) a2meets.elims(2) a2meets.simps(2) a2pt.inject crossproduct_noteq pl pm ql qm)
+    qed
+  qed
 
 lemma A2_a1:
   fixes P :: a2pt
@@ -305,7 +383,33 @@ lemma A2_a2a (*existence*):
   fixes l 
   assumes "\<not> a2meets P l"
   shows  "\<exists>k. a2meets P k \<and> l a2|| k"
-    sorry
+proof (cases P)
+  fix x0 y0 assume P: "P = (A2Point x0 y0)"
+  have existence: "\<exists>m. l a2|| m \<and> a2meets P m"
+  proof (cases l)
+    case (A2Vertical x1)
+    obtain m where mvert: "m = (A2Vertical x0)" 
+      by simp
+    have lparallelm: "a2parallel l m"
+      by (metis A2Vertical a2meets.simps(2) a2parallel_def a2pt.exhaust mvert)
+    have Ponm: "a2meets P m"
+      by (simp add: P mvert)
+    then show ?thesis
+      using lparallelm by auto
+  next
+    case (A2Ordinary slope intercept)
+    obtain intercept2 where a: "intercept2 = y0 - slope * x0" 
+      by simp
+    obtain line2 where eq: "line2 = (A2Ordinary slope intercept2)" 
+      by simp
+    have PonLine2: "a2meets P line2" try
+      by (simp add: P a eq)
+    then show ?thesis
+      by (smt A2Ordinary a2meets.elims(2) a2meets.simps(1) a2parallel_def eq) 
+  qed
+  thus ?thesis
+    by auto 
+qed
 
 text \<open> At this point, I went down a rabbit hole searching for proofs of the other half
 of axiom 2, and kept getting into trouble when dealing with the (pretty simple) algebra 
@@ -325,7 +429,12 @@ lemma A2_parallel_0:
   fixes P
   assumes nomeet: "\<not> (\<exists>P . a2meets P l \<and> a2meets P m)"
   shows "l a2|| m"
-  sorry
+proof -
+  have "(\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m))"
+    using nomeet by auto
+  thus "l a2|| m"
+    by (simp add: a2parallel_def)
+qed
 
 text \<open> a vertical and ordinary line cannot be parallel  \<close>
 lemma A2_basics_1: 
@@ -334,7 +443,28 @@ lemma A2_basics_1:
   assumes lo: "l = A2Vertical x"
   assumes mo: "m = A2Ordinary s b "
   shows lm_noparr : "\<not> (l a2|| m)"
-  sorry
+proof -
+  obtain P where P: "P = A2Point x (b + x*s)"
+    by simp
+  have Ponl: "a2meets P l" 
+    by (simp add: P lo)
+  have Ponm: "a2meets P m"
+    using P mo by auto
+  have not_eq: "\<not>(l=m)"
+    by (simp add: lo mo)
+  have "a2meets P l \<and> a2meets P m"
+    by (simp add: Ponl Ponm)
+  have "\<exists> P. a2meets P l \<and> a2meets P m"
+    using \<open>a2meets P l \<and> a2meets P m\<close> by auto
+  have "\<not> (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m))"
+    by (simp add: \<open>\<exists>P. a2meets P l \<and> a2meets P m\<close>)
+  have "\<not>(l = m) \<and> \<not> (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m))"
+    by (simp add: \<open>\<exists>P. a2meets P l \<and> a2meets P m\<close> not_eq)
+  have "\<not>(l = m \<or> (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m)))"
+    by (simp add: \<open>\<exists>P. a2meets P l \<and> a2meets P m\<close> not_eq)
+  thus "\<not> (l a2|| m)"
+    using a2parallel_def by auto
+qed
 
 text \<open>if two ordinary lines have different slopes, then they intersect  \<close>
 lemma A2_basics_2: 
@@ -356,7 +486,7 @@ lemma A2_parallel_1:
   assumes lo: "l = A2Vertical x2 "
   assumes lm_parr : "l a2|| m"
   shows "\<exists>s2. m = A2Vertical s2 "
-    sorry
+  by (metis A2_basics_1 a2meets.elims(2) a2meets.elims(3) lm_parr lo)
 
 text\<open> Let's do the other half of that: if l is ordinary, and m is parallel, then m is ordinary \<close>
 lemma A2_parallel_2: 
@@ -375,7 +505,7 @@ lemma A2_parallel_3:
   assumes mo: "m = A2Ordinary s2 b2 "
   assumes lm: "l a2|| m"
   shows "s1 = s2 " 
-  sorry 
+  using A2_basics_2 lm lo mo by blast
 
 text\<open>  Recall that axiom 2 states that there's a unique m 
 through P, parallel to l.    
@@ -410,6 +540,7 @@ lemma A2_a2:
 lemma A2_a3x:
   shows "\<not> (\<exists> m. a2meets (A2Point 0 0)  m \<and> a2meets (A2Point 0 1) m \<and> a2meets (A2Point 1 0) m)"
   sorry
+
 lemma A2_a3y: (* alternative formulation -- harder to read, easier to prove *)
   fixes m
   assumes "a2meets (A2Point 0 0) m"
