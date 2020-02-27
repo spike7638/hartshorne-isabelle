@@ -150,7 +150,7 @@ We now move on to prove some of the elementary claims in the text above, albeit 
 order. 
 \done\<close>
 
-  lemma symmetric_parallel: "l || m \<Longrightarrow> m || l" try
+  lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
     using parallel_def by auto
 (*
 proof -
@@ -178,9 +178,10 @@ proof -
       using parallel_def by auto
   qed
 *)
-
+  text \<open>\daniel\<close>
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
     by (metis a2 parallel_def)
+  text \<open>\done\<close> 
 (*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
@@ -197,6 +198,9 @@ proof -
     qed
   qed
 *)
+
+lemma equivp_parallel: "equivp parallel"
+  by (metis (mono_tags) affine_plane_data.parallel_def equivpI reflp_def symp_def transitive_parallel transpI)
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
@@ -250,7 +254,7 @@ This is the smallest affine plane. [NB: We'll return to this final claim present
     using a1 by auto
 
 
-text \<open>\leavevmode \daniel
+text \<open>\daniel
 We can also prove some basic theorems about affine planes not in Hartshorne. \done\<close>
   (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
   (* Every point lies on some line *)
@@ -262,7 +266,7 @@ We can also prove some basic theorems about affine planes not in Hartshorne. \do
     using a1 a2 a3 parallel_def collinear_def by metis
 
 
-text \<open>\leavevmode \daniel\<close>
+text \<open>\daniel\<close>
 
 lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
   proof -
