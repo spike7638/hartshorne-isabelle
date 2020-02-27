@@ -150,7 +150,7 @@ We now move on to prove some of the elementary claims in the text above, albeit 
 order. 
 \done\<close>
 
-  lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
+  lemma symmetric_parallel: "l || m \<Longrightarrow> m || l" try
   proof -
     fix l :: "'line" and m :: "'line"
     assume one_direction: "l || m"
@@ -236,14 +236,54 @@ This is the smallest affine plane. [NB: We'll return to this final claim present
 \end{hartshorne}
 \<close>
 
+  (* Two lines meet in at most one point *)
+  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
+    using a1 by auto
+
+
+text \<open>\leavevmode \daniel
+We can also prove some basic theorems about affine planes not in Hartshorne. \done\<close>
+  (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
+  (* Every point lies on some line *)
+  lemma (in affine_plane) containing_line: "\<forall>S. \<exists>l. meets S l"
+    using a2 by blast
+
+  (* Every line contains at least one point *)
+  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
+    using a1 a2 a3 parallel_def collinear_def by metis
+
+
+text \<open>\leavevmode \daniel\<close>
+
+lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
+  proof -
+    fix l::"'line"
+    obtain S where S:"meets S l" using contained_point
+      by auto
+    obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+      using a3 by blast
+    obtain A B where AB: "A \<noteq> B \<and> A \<noteq> S \<and> B \<noteq> S \<and> \<not> collinear A B S"
+      by (smt PQR collinear_def prop1P2)
+    obtain C where C: "(C=A \<or> C=B) \<and> \<not> meets C l"
+      using AB S collinear_def by blast
+    obtain m where m: "meets C m \<and> meets S m"
+      by (metis AB a1)
+    obtain D where D: "(D = A \<or> D = B) \<and> D \<noteq> C"
+      using AB by blast
+    thus ?thesis
+      by (smt AB C D S a2 affine_plane_data.collinear_def m parallel_def symmetric_parallel transitive_parallel)
+  qed
+
+  text \<open>\done\<close>
+
   section  \<open> The real affine plane\<close>
   text \<open> Hartshorne mentioned, just after the definition of an affine plane and some notational 
 notes, that the ordinary affine plane is an example of an affine plane. We should prove 
 that it's actually an affine plane. It's pretty clear how to represent points --- pairs of real 
 numbers --- but what about lines? A line is the set of points satisfying an equation of 
 the form Ax + By + C = 0, with not both of A and B being zero. The problem is that there's 
-no datatype for "pair of real numbers, at least one of which is nonzero". We'll have 
-to hack this by breaking lines into "ordinary" and "vertical", alas.   \<close>
+no datatype for ``pair of real numbers, at least one of which is nonzero''. We'll have 
+to hack this by breaking lines into ``ordinary'' and ``vertical'', alas.   \<close>
 
   datatype a2pt = A2Point "real" "real"
 
@@ -262,10 +302,10 @@ as a forall rather than exists. I think this might make things easier.\<close>
   text\<open>Now some small lemmas, basically establishing the three axioms \<close>
   text\<open> I'm going to venture into a new style of writing theorems and proofs, one that's
 particularly applicable when you're showing something exists by constructing it. Here is 
-an example in the case of real numbers: if r < s, then there's a real number strictly between
-them. We could write this as "r < s shows that there is a t . ((r < t) and (t < s))" (although it turns out we'd have
-to start with "(r::real) < s ..." to tell Isar not to assume that r is a natural number -- after all, 
-this is one of those cases where type-inference has no idea whether "<" means less-than on the reals,
+an example in the case of real numbers: if $r < s$, then there's a real number strictly between
+them. We could write this as ``$r < s$ shows that there is a $t$ . ($(r < t)$ and $(t < s)$)'' (although it turns out we'd have
+to start with ``\texttt{(r::real) < s ...}'' to tell Isar not to assume that r is a natural number -- after all, 
+this is one of those cases where type-inference has no idea whether ``<'' means less-than on the reals,
 or the integers, or the natural numbers, or ...)
 
 Anyhow, in this new style, we would write the theorem like this:
@@ -632,28 +672,6 @@ theorem A2_affine: "affine_plane(a2meets)"
   using A2_a3 by auto
 
 text\<open>\done \done\<close>
-  (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
-  (* Every point lies on some line *)
-  lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
-    sorry
-
-  (* Every line contains at least one point *)
-  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
-    sorry
-
-  (* Two lines meet in at most one point *)
-  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
-    sorry
-
-(* Some HW Problems to give you practice with Isabelle:
-Try to state and prove these:
-1. Every line contains at least two points (this is stated for you below, but
-with "sorry" as a "proof". 
-2. Every line contains at least three points [false!]
-*)
-
-lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
-  sorry
 
   text \<open>
  We now try to prove that every affine plane contains at least four points. Sledgehammer 
