@@ -151,7 +151,9 @@ order.
 \done\<close>
 
   lemma symmetric_parallel: "l || m \<Longrightarrow> m || l" try
-  proof -
+    using parallel_def by auto
+(*
+proof -
     fix l :: "'line" and m :: "'line"
     assume one_direction: "l || m"
     show "m || l"
@@ -164,16 +166,22 @@ order.
         by (simp add: parallel_def)
     qed
   qed
+*)
 
   lemma reflexive_parallel: "l || l"
+    using parallel_def by blast
+(*
   proof - 
     have "l = l" 
       by auto
     thus "l || l"
       using parallel_def by auto
   qed
+*)
 
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
+    by (metis a2 parallel_def)
+(*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
     assume lm: "l || m"
@@ -188,6 +196,7 @@ order.
         by (metis a2 lm parallel_def)
     qed
   qed
+*)
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
@@ -305,7 +314,7 @@ particularly applicable when you're showing something exists by constructing it.
 an example in the case of real numbers: if $r < s$, then there's a real number strictly between
 them. We could write this as ``$r < s$ shows that there is a $t$ . ($(r < t)$ and $(t < s)$)'' (although it turns out we'd have
 to start with ``\texttt{(r::real) < s ...}'' to tell Isar not to assume that r is a natural number -- after all, 
-this is one of those cases where type-inference has no idea whether ``<'' means less-than on the reals,
+this is one of those cases where type-inference has no idea whether ``$<$'' means less-than on the reals,
 or the integers, or the natural numbers, or ...)
 
 Anyhow, in this new style, we would write the theorem like this:
