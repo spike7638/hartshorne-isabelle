@@ -685,7 +685,32 @@ theorem A2_affine: "affine_plane(a2meets)"
   apply (simp add: affine_plane_data.collinear_def)
   using A2_a3 by auto
 
-text\<open>\done \done\<close>
+
+text\<open>\done \done  Examples of some easy theorems about affine planes, not mentioned in Hartshorne. \jackson \<close>      
+  (* Every point lies on some line *)
+  lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
+    using a2 by blast
+
+  (* Every line contains at least one point *)
+  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
+    using a1 a2 a3 parallel_def collinear_def by metis
+
+  (* Two lines meet in at most one point *)
+  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
+    using a1 by auto
+
+text \<open> \done \<close>
+
+(* Some HW Problems to give you practice with Isabelle:
+Try to state and prove these:
+1. Every line contains at least two points (this is stated for you below, but
+with "sorry" as a "proof". 
+2. Every line contains at least three points [false!]
+*)
+
+lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
+  sorry
+
 
   text \<open>
  We now try to prove that every affine plane contains at least four points. Sledgehammer 
@@ -1039,8 +1064,24 @@ with the work on the 7-point plane, etc.
     "pmeets Rpt LAI = False" |
     "pmeets Spt LAI = False" 
 
-theorem "projective_plane pmeets"
+  text \<open>Show that pmeets satisfies the projective plane axioms: \jackson \<close>
+
+(* all of these can be proved by maaaany cases ... *)
+lemma "pmeets_p1": "\<forall>P Q. P \<noteq> Q \<longrightarrow> (\<exists>!l. pmeets P l \<and> pmeets Q l)"
   sorry
+lemma "pmeets_p2": "\<forall>l m. l \<noteq> m \<longrightarrow> (\<exists>!P. pmeets P l \<and> pmeets P m)"
+  sorry
+lemma "pmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear pmeets P Q R"
+  by (smt pmeets.simps(1) pmeets.simps(24) pmeets.simps(3) pmeets_p2 ppts.distinct(8) projective_plane_data.collinear_def)
+lemma "pmeets_p4": "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> pmeets P l \<and> pmeets Q l \<and> pmeets R l"
+  sorry
+
+theorem "projective_plane pmeets"
+  unfolding projective_plane_def
+  using pmeets_p1 pmeets_p2 pmeets_p3 pmeets_p4 by auto
+
+text \<open>\done\<close>
+
 (*
 theorem projectivization_p1: "\<lbrakk>P \<noteq> Q; affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow>  \<exists>l. pm P l \<and> pm Q l"
 sorry 
