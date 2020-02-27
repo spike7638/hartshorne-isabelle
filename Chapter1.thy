@@ -178,10 +178,10 @@ proof -
       using parallel_def by auto
   qed
 *)
-  text \<open>\daniel\<close>
+
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
     by (metis a2 parallel_def)
-  text \<open>\done\<close> 
+
 (*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
@@ -198,10 +198,11 @@ proof -
     qed
   qed
 *)
-
+  text \<open>\daniel\<close>
 lemma equivp_parallel: "equivp parallel"
   by (metis (mono_tags) affine_plane_data.parallel_def equivpI reflp_def symp_def transitive_parallel transpI)
 end
+  text \<open>\done\<close> 
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
 characterization of parallelism \done\<close>
