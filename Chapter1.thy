@@ -708,8 +708,46 @@ with "sorry" as a "proof".
 2. Every line contains at least three points [false!]
 *)
 
-lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
+text\<open>To prove that every line contains at least two points, firstly we should think about where the
+contradiction is when the line contains only one point. Usually, contradiction happens when something
+violates a unique existence. For example, in A2, if an assumption leads to the conclusion that there
+are more lines that could parallel to a specific line passing through the same point, then the assumption
+is proved to be false. Here are the ideas for our proof.
+
+i. If l only contains one point Q and point P != point Q, then every line passing through P is parallel
+to l.
+ii. To prove the contradiction to A2, we have to prove there are at least two lines passing through P. 
+\<rightarrow> need lemma contained_lines: for every point, there are at least two lines that pass through that point.
+iii.Lemma contained_lines can be proved with the three non-collinear points P Q R in A3. Two cases:
+1. The point is P or Q or R. 2. The point T is different from those 3 points. Then PT, QT, RT cannot
+be the same line, which proves that at least two lines pass through T.
+
+(I'm still Struggling with the grammar in Isabelle. I’ll try to finish these two lemmas soon and
+ I’m also looking for help ;)
+\siqi\<close>
+lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
   sorry
+(*
+proof -
+  fix S P Q R
+  fix SP SQ SR PQ PR QR
+  assume "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+  assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
+  
+*)
+
+
+lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"try
+  sorry
+(*
+proof -
+  fix l
+  obtain S where S: "meets S l"
+    using contained_point by blast
+  assume Q: "Q \<noteq> S"
+  obtain m where m: "meets S m \<and> meets Q m"
+   
+*)
 
 
   text \<open>
