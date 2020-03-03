@@ -23,4 +23,54 @@ An isomorphism of one group with another is a homomorphism which is
 1–1 and onto.
 Definition. Let G be a group. A subgroup of G is a non-empty subset
 H \<subseteq> G, such that for any a,b \<in> H, ab \<in> H and a−1 \<in> H.
-end
+end \<close>
+
+
+
+subsection\<open>Automorphisms of the real projective plane\<close>
+text \<open>\begin{hartshorne}Here we study another important example of the automorphisms of a pro-
+jective plane. Recall that the real projective plane is defined as follows: A point
+is given by homogeneous coordinates $(x_1 , x_2 , x_3 )$. That is, a triple of real num-
+bers, not all zero, and with the convention that $(x_1 , x_2 , x_3)$ and $(\<lambda>x_1, \<lambda>x_2, \<lambda>x_3)$
+represent the same point, for any \<lambda> 6 = 0, \<lambda> \<in> \<real>. A line is the set of points which
+satisfy an equation of the form 
+
+\begin{equation*}
+a_1 x_1 + a_2 x_2 + a_3 x_3 = 0,
+\end{equation*}
+
+$a_i$ \<in> \<real>, not all zero. \end{hartshorne}\<close>
+
+subsubsection\<open>Brief review of matrices\<close>
+text \<open>A $n \times n$ \term{matrix} of real numbers is a collection of $n^2$ real numbers, indexed
+by two indices, say $i$, $j$, each of which may take values from 1 to $n$. Hence
+$A = {a_{11}, a_{12}, \<dots>, a_{21}, a_{22}, \<dots>, a_{n1}, a_{n2}, \<dots>, a_{nn}}. The matrix is
+usually written in a square:
+\begin{pmatrix}
+a_{11} & a_{12} & \hdots & a_{1n} \\
+a_{21} & a_{22} & \hdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{n1} & a_{n2} & \hdots & a_{nn}
+\end{pmatrix} 
+
+Here the first subscript determines the row, and the second subscript determines
+the column.
+
+The product of two matrices $A = (a_{ij})$ and $B = (b_{ij})$ (both of order n) is
+defined to be
+
+\begin{equation*}
+  A \dot B = C
+\end{equation*}
+
+where $C = (c_{ij})% and
+
+\begin{equation*}
+  \sum_{n}^{k=1} a_{ik} b_{kj}.
+\end{equation*}\<close>
+
+
+
+
+
+
