@@ -5,6 +5,7 @@ session "geometry" (AFP) = "HOL-Library" +
   theories
     Chapter1
     Chapter2
+    Chapter3
   document_files
     "root.tex"
     "book-defs.tex"
