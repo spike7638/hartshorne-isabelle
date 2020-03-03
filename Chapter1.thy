@@ -2,7 +2,7 @@ theory Chapter1
   imports Complex_Main
 
 begin
-declare [[smt_timeout = 120]]
+declare [[smt_timeout = 200]]
 section \<open>Preface\<close>
 text \<open>
 \spike
@@ -461,7 +461,7 @@ proof (cases P)
       by simp
     obtain line2 where eq: "line2 = (A2Ordinary slope intercept2)" 
       by simp
-    have PonLine2: "a2meets P line2" try
+    have PonLine2: "a2meets P line2"
       by (simp add: P a eq)
     then show ?thesis
       by (smt A2Ordinary a2meets.elims(2) a2meets.simps(1) a2parallel_def eq) 
@@ -687,19 +687,8 @@ theorem A2_affine: "affine_plane(a2meets)"
 
 
 text\<open>\done \done  Examples of some easy theorems about affine planes, not mentioned in Hartshorne. \jackson \<close>      
-  (* Every point lies on some line *)
-(*   lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
-    using a2 by blast
 
-  (* Every line contains at least one point *)
-  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
-    using a1 a2 a3 parallel_def collinear_def by metis
 
-  (* Two lines meet in at most one point *)
-  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
-    using a1 by auto *)
-
-text \<open> \done \<close>
 
 (* Some HW Problems to give you practice with Isabelle:
 Try to state and prove these:
@@ -717,8 +706,8 @@ is proved to be false. Here are the ideas for our proof.
 i. If l only contains one point Q and point P != point Q, then every line passing through P is parallel
 to l.
 ii. To prove the contradiction to A2, we have to prove there are at least two lines passing through P. 
-\<rightarrow> need lemma contained_lines: for every point, there are at least two lines that pass through that point.
-iii.Lemma contained_lines can be proved with the three non-collinear points P Q R in A3. Two cases:
+NB: need lemma contained-lines: for every point, there are at least two lines that pass through that point.
+iii.Lemma contained-lines can be proved with the three non-collinear points P Q R in A3. Two cases:
 1. The point is P or Q or R. 2. The point T is different from those 3 points. Then PT, QT, RT cannot
 be the same line, which proves that at least two lines pass through T.
 
@@ -734,19 +723,6 @@ proof -
   assume "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
   assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
   
-*)
-
-
-(* lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"try
-  sorry *)
-(*
-proof -
-  fix l
-  obtain S where S: "meets S l"
-    using contained_point by blast
-  assume Q: "Q \<noteq> S"
-  obtain m where m: "meets S m \<and> meets Q m"
-   
 *)
 
 
@@ -865,8 +841,8 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
 proposition four_points_sufficient: "affine_plane plmeets"
-  sorry
-(* Proof, but one that needs more time to complete, so Isabelle times out...
+  
+(* Proof, but one that needs more time to complete, so Isabelle times out...*)
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
@@ -874,7 +850,7 @@ proposition four_points_sufficient: "affine_plane plmeets"
     apply (simp add: affine_plane_data.collinear_def)
     using four_points_a3 apply (blast)
     done
-*) 
+(**) 
 
 (* There's another way to show the existence of a 4-point affine plane: you claim that they 
 must have at least 5 points, and let "nitpick" show that you're wrong. I'm going to use some
