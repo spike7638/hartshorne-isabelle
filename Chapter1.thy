@@ -705,8 +705,8 @@ is proved to be false. Here are the ideas for our proof.
 i. If l only contains one point Q and point P != point Q, then every line passing through P is parallel
 to l.
 ii. To prove the contradiction to A2, we have to prove there are at least two lines passing through P. 
-\<rightarrow> need lemma contained_lines: for every point, there are at least two lines that pass through that point.
-iii.Lemma contained_lines can be proved with the three non-collinear points P Q R in A3. Two cases:
+NB: need lemma contained-lines: for every point, there are at least two lines that pass through that point.
+iii.Lemma contained-lines can be proved with the three non-collinear points P Q R in A3. Two cases:
 1. The point is P or Q or R. 2. The point T is different from those 3 points. Then PT, QT, RT cannot
 be the same line, which proves that at least two lines pass through T.
 

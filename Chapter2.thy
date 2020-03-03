@@ -223,7 +223,14 @@ must lie in $\pi0,$ and that's a contradiction,
  since $\pi_0$ has only four points.
 \end{hartshorne}\<close>
 
+locale free_projective_plane_data =
+    fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
+begin
+datatype fpoint = A | B | C | D | Intersect nat fline fline and
+fline = Join nat fpoint fpoint
+
+(* Need to make some assumptions about flines and fpoints, then prove configs lie in pi0. *)
 
 end
-
+end
 
