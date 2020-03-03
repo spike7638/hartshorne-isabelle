@@ -1118,6 +1118,14 @@ text \<open>\done\<close>
 theorem projectivization_p1: "\<lbrakk>P \<noteq> Q; affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow>  \<exists>l. pm P l \<and> pm Q l"
 sorry 
 *)
+
+(*
+attempt to state a theorem about the the relation between the number of points on a line and
+the number of points in the projective plane - Homer
+lemma line_points_to_plane_points: "\<lbrakk>affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow> 
+        \<forall> l . card({P . pm P l}) = n \<longrightarrow> card({Q . \<exists> k . pm Q k}) = (n-1)^2 + n"
+  sorry
+*)
 end
 
 

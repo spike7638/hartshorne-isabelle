@@ -83,7 +83,84 @@ where $C = (c_{ij})$ and
 
 \begin{equation*}
   \sum_{n}^{k=1} a_{ik} b_{kj}.
-\end{equation*}\<close>
+\end{equation*}
+
+\[
+\begin{pmatrix}
+a_{i1} & \hdots & a_{in} \\
+\end{pmatrix}
+\begin{pmatrix}
+a_{1j} \\
+\vdots \\
+b_{nj} \\
+\end{pmatrix}
+= ( c_{ij} )
+\]
+
+
+\[c_{ij} = a_{i1}b_{1j} + a_{i2}b_{2j} + \hdots  + a_{in}b_{nj}\]
+
+There is also a function \textbf{determinant}, from the set of $n \times n$ matrices to $\mathbb{R}$,
+which is characterized by the following two properties:
+
+\textbf{D1} \textit{If A, B are two matrices}
+
+\[ det(A \cdot B) = det A \cdot det B\]
+
+\textbf{D2} \textit{For each $a \in R$, let}
+
+Note incidentally that the identity matrix $I = C(1)$ behaves as a multiplicative identity. 
+One can prove the following facts:
+\begin{enumerate}
+\item $(A \cdot B) \cdot C = A \cdot (B \cdot C)$, i.e. multiplication of matrices is associative. 
+(In general it is not commutative.)
+
+\item A matrix $A$ has a multiplicative inverse $A^{-1}$
+if and only if $det A \neq 0$.
+
+Hence the set of $n \times n$ matrices $A$ with $det A \neq 0$ forms a group under multiplication, 
+denoted by GL$(n, \mathbb{R})$. 
+\item Let $A = (a_{ij})$ be a matrix, and consider the set of simultaneous linear
+equations
+\[a_{11}x_1 + a_{12}x_2 + \hdots + a_1nx_n = b_1\]
+\[a_{21}x_1 + a_{22}x_2 + \hdots + a_2nx_n = b_2\]
+\begin{center}$\vdots$\end{center}
+\[a_{n1}x_1 + a_{n2}x_2 + \hdots + a_{nn}x_n = b_n\]
+If $det A \neq 0$, then this set of equations has a solution. Conversely, if this
+set of equations has a solution for all possible choices of $b_1, \hdots, b_n$ then
+$det A \neq 0$.
+\end{enumerate}
+For proofs of these statements, refer to any book on algebra. We will take
+them for granted, and use them without comment in the rest of the course. One
+can prove easily that 3 follows from 1 and 2. Because to say $x_1, \hdots, x_n$ are a
+solution of that system of linear equations is the same as saying that
+
+\[
+A \cdot
+\begin{pmatrix}
+x_1 \\
+x_2 \\
+\vdots \\
+x_n \\
+\end{pmatrix}
+=
+\begin{pmatrix}
+b_1 \\
+b_2 \\
+\vdots \\
+b_n \\
+\end{pmatrix}
+\]
+Now let $A = (a_{ij})$ be a $3 \times 3$ matrix of real numbers, and let $\pi$ be the real
+projective plane, with homogeneous coordinates $x_1, x_2, x_3$. We define a transformation $T_A$ of $\pi$ as follows: 
+The point $(x_1, x_2, x_3)$ goes into the point
+\[T_A(x_1, x_2, x_3) = (x_1', x_2', x_3')\]
+where
+\[x_1' = a_{11}x_1 + a_{12}x_2 + a_{13}x_3\]
+\[x_2' = a_{21}x_1 + a_{22}x_2 + a_{23}x_3\]
+\[x_3' = a_{31}x_1 + a_{32}x_2 + a_{33}x_3\]
+
+\<close>
 
 (*
 CONTINUES WITH DOT-PRODUCT DEFINITION OF MATRIX MULTIPLICATION
