@@ -2,7 +2,7 @@ theory Chapter1
   imports Complex_Main
 
 begin
-declare [[smt_timeout = 120]]
+declare [[smt_timeout = 200]]
 section \<open>Preface\<close>
 text \<open>
 \spike
@@ -687,19 +687,7 @@ theorem A2_affine: "affine_plane(a2meets)"
 
 
 text\<open>\done \done  Examples of some easy theorems about affine planes, not mentioned in Hartshorne. \jackson \<close>      
-  (* Every point lies on some line *)
-  lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
-    using a2 by blast
 
-  (* Every line contains at least one point *)
-  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
-    using a1 a2 a3 parallel_def collinear_def by metis
-
-  (* Two lines meet in at most one point *)
-  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
-    using a1 by auto
-
-text \<open> \done \<close>
 
 (* Some HW Problems to give you practice with Isabelle:
 Try to state and prove these:
@@ -735,20 +723,6 @@ proof -
   assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
   
 *)
-
-
-lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"try
-  sorry
-(*
-proof -
-  fix l
-  obtain S where S: "meets S l"
-    using contained_point by blast
-  assume Q: "Q \<noteq> S"
-  obtain m where m: "meets S m \<and> meets Q m"
-   
-*)
-
 
   text \<open>
  We now try to prove that every affine plane contains at least four points. Sledgehammer 
