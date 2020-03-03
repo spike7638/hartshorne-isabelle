@@ -689,6 +689,7 @@ theorem A2_affine: "affine_plane(a2meets)"
 text\<open>\done \done  Examples of some easy theorems about affine planes, not mentioned in Hartshorne. \jackson \<close>      
 
 
+
 (* Some HW Problems to give you practice with Isabelle:
 Try to state and prove these:
 1. Every line contains at least two points (this is stated for you below, but
@@ -713,8 +714,8 @@ be the same line, which proves that at least two lines pass through T.
 (I'm still Struggling with the grammar in Isabelle. I’ll try to finish these two lemmas soon and
  I’m also looking for help ;)
 \siqi\<close>
-lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
-  sorry
+(* lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
+  sorry *)
 (*
 proof -
   fix S P Q R
@@ -723,6 +724,7 @@ proof -
   assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
   
 *)
+
 
   text \<open>
  We now try to prove that every affine plane contains at least four points. Sledgehammer 
@@ -752,11 +754,29 @@ ix.  Hence S != P, S != Q.
 x. Similar (arguing about l), we get  S != R. 
 
 xi. Hence the four points P,Q,R,S are all distinct, and we are done. 
-\<close>
-  proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q :: 'point) (R :: 'point) (S :: 'point). 
+\caleb \seiji\<close>
+proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q :: 'point) (R :: 'point) (S :: 'point). 
       P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> P \<noteq> S \<and> Q \<noteq> S \<and> R \<noteq> S"
-    sorry
+    proof -
+      obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+        using a3 by blast
+      obtain PQ where PQ: "meets P PQ \<and> meets Q PQ" 
+        using a1 PQR by blast
+      obtain l where l: "meets R l \<and> l || PQ"
+        by (metis PQ PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
+      obtain QR where QR: "meets Q QR \<and> meets R QR" 
+        using a1 PQR by blast
+      obtain m where m: "meets P m \<and> m || QR"
+        by (metis QR PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
+      obtain S where S: "meets S l \<and> meets S m"
+        by (metis (no_types, lifting) PQ QR affine_plane.a2 affine_plane_axioms l m parallel_def)
+      have "S \<noteq> P \<and> S \<noteq> Q \<and> S \<noteq> R"
+        by (metis PQ PQR QR S affine_plane_data.collinear_def affine_plane_data.parallel_def l m)
+      thus ?thesis
+        using PQR by blast
+    qed
 
+    text\<open>\done \done\<close>
 (* We've now proved the first assertion in the Example after Prop 1.2; we must also show there
 IS an affine plane with four points. We'll do this two ways: by explicit construction, and
 by using the wonderful "nitpick" 'prover'. *)
