@@ -822,7 +822,7 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
 
 proposition four_points_sufficient: "affine_plane plmeets"
   sorry
-(* Proof, but one that needs more time to complete, so Isabelle times out...
+(* Proof, but one that needs more time to complete, so Isabelle times out...*)
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
@@ -830,7 +830,7 @@ proposition four_points_sufficient: "affine_plane plmeets"
     apply (simp add: affine_plane_data.collinear_def)
     using four_points_a3 apply (blast)
     done
-*) 
+(**) 
 
 (* There's another way to show the existence of a 4-point affine plane: you claim that they 
 must have at least 5 points, and let "nitpick" show that you're wrong. I'm going to use some
