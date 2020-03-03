@@ -461,7 +461,7 @@ proof (cases P)
       by simp
     obtain line2 where eq: "line2 = (A2Ordinary slope intercept2)" 
       by simp
-    have PonLine2: "a2meets P line2" try
+    have PonLine2: "a2meets P line2"
       by (simp add: P a eq)
     then show ?thesis
       by (smt A2Ordinary a2meets.elims(2) a2meets.simps(1) a2parallel_def eq) 
@@ -821,7 +821,7 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
 proposition four_points_sufficient: "affine_plane plmeets"
-  sorry
+  
 (* Proof, but one that needs more time to complete, so Isabelle times out...*)
     unfolding affine_plane_def
     apply (intro conjI)
