@@ -69,6 +69,11 @@ where $C = (c_{ij})% and
   \sum_{n}^{k=1} a_{ik} b_{kj}.
 \end{equation*}\<close>
 
+(*
+CONTINUES WITH DOT-PRODUCT DEFINITION OF MATRIX MULTIPLICATION
+*)
+
+
 
 
 
