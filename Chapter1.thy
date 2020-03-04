@@ -198,11 +198,20 @@ proof -
     qed
   qed
 *)
-  text \<open>\daniel\<close>
+  text \<open>\daniel\haoze Equivalence relations can be proved using the following structure with
+exported rules.\<close>
 lemma equivp_parallel: "equivp parallel"
-  by (metis (mono_tags) affine_plane_data.parallel_def equivpI reflp_def symp_def transitive_parallel transpI)
+proof (rule equivpI)
+  show "reflp parallel"
+    by (simp add: reflexive_parallel reflpI)
+  show "symp parallel"
+    by (simp add: symmetric_parallel sympI)
+  show "transp parallel"
+    by (simp add: transitive_parallel transpI)
+qed
+  text \<open>\done\<close>
+
 end
-  text \<open>\done\<close> 
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
 characterization of parallelism \done\<close>
