@@ -84,7 +84,7 @@ point sets as lines turns out to be a horrible idea in Isabelle, so we just deal
 locale affine_plane_data =
     fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
 
-  begin
+begin
 
     definition parallel:: "'line  \<Rightarrow> 'line \<Rightarrow> bool" (infix "||" 50)
       where "l || m \<longleftrightarrow> (l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))"
@@ -1035,6 +1035,8 @@ two lines in a projective plane have the same cardinality", etc. -- Spike *)
 
 end
 
+
+
   (* Pending: The "Ideal" constructor probably needs to take a pencil of lines, or a quotient type *)
   datatype ('point, 'line) projPoint = Ordinary 'point | Ideal 'line
   datatype ('point, 'line) projLine = OrdinaryL 'line | Infty 
@@ -1044,6 +1046,19 @@ end
     | "projectivize meets (Ideal l) (OrdinaryL m) = affine_plane_data.parallel meets l m"
     | "projectivize meets (Ordinary P) Infty = False"
     | "projectivize meets (Ideal l) Infty = True"
+
+ (*Datatype that defines points and lines in a free projective plane on 4 points: note the mutual recursion.*)\
+  (* where can/should we specify that the int in the type declaration isn't arbitrary? i.e. that if 
+    fpoint P = 4 l m, then l = 3 Q R and m = 3 S T.
+    *)
+  datatype fpoint = A | B | C | D | consPoint int fline fline
+    and fline = consLine int fpoint fpoint
+  fun fmeets :: "fpoint \<Rightarrow> fline \<Rightarrow> bool" where
+      "fmeets A (consLine n P Q) =  ((A = P) \<or> (A = Q))" 
+    | "fmeets B (consLine n P Q) = ((B = P) \<or> (B = Q))" 
+    | "fmeets C (consLine n P Q) = ((C = P) \<or> (C = Q))" 
+    | "fmeets D (consLine n P Q) = ((D = P) \<or> (D = Q))" 
+    |"fmeets (consPoint n l m) (consLine n' P Q) = ((P = (consPoint n l m)) \<or> (Q = (consPoint n l m)) \<or> (l = (consLine n' P Q)) \<or> (m = (consLine n' P Q)))"
 
   datatype ppts = Ppt | Qpt | Rpt | Spt | PQinf | PRinf | PSinf
   datatype plns = PQln | PRln | PSln | QRln | QSln | RSln | LAI
