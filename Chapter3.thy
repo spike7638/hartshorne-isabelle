@@ -3,7 +3,9 @@ theory Chapter3
 
 begin
 section\<open>Digression on Groups and Automorphisms\<close>
-text \<open>\defn[group]. A \term{group} is a set $G$ together with a binary operation, called multiplication,
+text \<open>
+\begin{hartshorne}
+\defn[group]. A \term{group} is a set $G$ together with a binary operation, called multiplication,
 written $ab$ such that
 \begin{itemize}
 \item[G1] (\term{Associativity}) For all $a,b,c\in G, (ab)c = a(bc)$.
@@ -38,7 +40,8 @@ An \term{isomorphism} of one group with another is a homomorphism which is
 
 \defn [subgroup]  Let $G$ be a group. A subgroup of $G$ is a non-empty subset
 $H \subseteq G,$ such that for any $a,b \in H,$ $ab \in H$ and $a^{-1} \in H.$
-end \<close>
+\end{hartshorne}
+ \<close>
 
 
 
@@ -57,7 +60,8 @@ a_1 x_1 + a_2 x_2 + a_3 x_3 = 0,
 $a_i \in \Bbb R,$ not all zero. \end{hartshorne}\<close>
 
 subsubsection\<open>Brief review of matrices\<close>
-text \<open>A $n \times n$ \term{matrix} of real numbers is a collection of $n^2$ real numbers, indexed
+text \<open>\begin{hartshorne}
+A $n \times n$ \term{matrix} of real numbers is a collection of $n^2$ real numbers, indexed
 by two indices, say $i$, $j$, each of which may take values from 1 to $n$. Hence
 $A = {a_{11}, a_{12}, \ldots , a_{21}, a_{22}, \ldots , a_{n1}, a_{n2}, \ldots , a_{nn}}.$ The matrix is
 usually written in a square:
@@ -76,13 +80,13 @@ The product of two matrices $A = (a_{ij})$ and $B = (b_{ij})$ (both of order $n$
 defined to be
 
 \begin{equation*}
-  A \dot B = C
+  A \cdot B = C
 \end{equation*}
 
 where $C = (c_{ij})$ and
 
 \begin{equation*}
-  \sum_{n}^{k=1} a_{ik} b_{kj}.
+  c_{ij} = \sum_{k=1}^n a_{ik} b_{kj}.
 \end{equation*}
 
 \[
@@ -90,7 +94,7 @@ where $C = (c_{ij})$ and
 a_{i1} & \hdots & a_{in} \\
 \end{pmatrix}
 \begin{pmatrix}
-a_{1j} \\
+b_{1j} \\
 \vdots \\
 b_{nj} \\
 \end{pmatrix}
@@ -107,7 +111,7 @@ which is characterized by the following two properties:
 
 \[ det(A \cdot B) = det A \cdot det B\]
 
-\textbf{D2} \textit{For each $a \in R$, let}
+\textbf{D2} \textit{For each $a \in R$, let $C(a) = \ldots $}
 
 Note incidentally that the identity matrix $I = C(1)$ behaves as a multiplicative identity. 
 One can prove the following facts:
@@ -118,17 +122,19 @@ One can prove the following facts:
 \item A matrix $A$ has a multiplicative inverse $A^{-1}$
 if and only if $det A \neq 0$.
 
-Hence the set of $n \times n$ matrices $A$ with $det A \neq 0$ forms a group under multiplication, 
+Hence the set of $n \times n$ matrices $A$ with $\det A \neq 0$ forms a group under multiplication, 
 denoted by GL$(n, \mathbb{R})$. 
 \item Let $A = (a_{ij})$ be a matrix, and consider the set of simultaneous linear
 equations
-\[a_{11}x_1 + a_{12}x_2 + \hdots + a_1nx_n = b_1\]
-\[a_{21}x_1 + a_{22}x_2 + \hdots + a_2nx_n = b_2\]
-\begin{center}$\vdots$\end{center}
-\[a_{n1}x_1 + a_{n2}x_2 + \hdots + a_{nn}x_n = b_n\]
-If $det A \neq 0$, then this set of equations has a solution. Conversely, if this
+\begin{align}
+a_{11}x_1 + a_{12}x_2 + \hdots + a_{1n}x_n &= b_1 \\
+a_{21}x_1 + a_{22}x_2 + \hdots + a_{2n}x_n &= b_2 \\
+\vdots &= \vdots\\
+a_{n1}x_1 + a_{n2}x_2 + \hdots + a_{nn}x_n &= b_n
+\end{align}
+If $\det A \neq 0$, then this set of equations has a solution. Conversely, if this
 set of equations has a solution for all possible choices of $b_1, \hdots, b_n$ then
-$det A \neq 0$.
+$\det A \neq 0$.
 \end{enumerate}
 For proofs of these statements, refer to any book on algebra. We will take
 them for granted, and use them without comment in the rest of the course. One
@@ -159,7 +165,7 @@ where
 \[x_1' = a_{11}x_1 + a_{12}x_2 + a_{13}x_3\]
 \[x_2' = a_{21}x_1 + a_{22}x_2 + a_{23}x_3\]
 \[x_3' = a_{31}x_1 + a_{32}x_2 + a_{33}x_3\]
-
+\end{hartshorne}
 \<close>
 
 (*

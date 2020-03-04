@@ -6,7 +6,7 @@ declare [[smt_timeout = 200]]
 section \<open>Preface\<close>
 text \<open>
 \spike
-This book is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
+This text is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
 using the Isabelle proof assistant, primarily relying on Isar. Quotations 
 from Hartshorne appear indented, with a blue line to the left. Additional material 
 written by either the professor (John (Spike) Hughes) or various students are surrounded by colored 
@@ -22,11 +22,11 @@ to the text, so Proposition 1.1 in the text is called \texttt{Prop1P1}, with ``P
 for instance. 
 
 We've based our theory on "Complex\_Main" instead of main so that we have the datatype "real". To 
-characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabell 
+characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabelle 
 construct that lets us say ``this entity satisfies this collection of defining axioms.''
 \done\<close>
 
-section \<open>Introduction: Affine Planes and Projective Planes\<close>
+chapter \<open>Introduction: Affine Planes and Projective Planes\<close>
 text \<open>
 \begin{hartshorne}
 Projective geometry is concerned with properties of incidence --- properties which are 
@@ -37,7 +37,7 @@ and there we will use all the techniques available (e.g. those of Euclidean geom
 geometry) to see what is true and what is not true.
 \end{hartshorne}\<close>
 
-subsection \<open>Affine geometry\<close>
+section \<open>Affine geometry\<close>
 text\<open>
 \begin{hartshorne}
 Let us start with some of the most elementary facts of ordinary plane geometry, which we will
@@ -1028,6 +1028,13 @@ with the work on the 7-point plane, etc.
     p3: "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R" and
     p4: "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> meets P l \<and> meets Q l \<and> meets R l"
 
+begin
+
+(* right here is where many small theorems about projective planes should go, theorems like "any
+two lines in a projective plane have the same cardinality", etc. -- Spike *)
+
+end
+
   (* Pending: The "Ideal" constructor probably needs to take a pencil of lines, or a quotient type *)
   datatype ('point, 'line) projPoint = Ordinary 'point | Ideal 'line
   datatype ('point, 'line) projLine = OrdinaryL 'line | Infty 
@@ -1129,6 +1136,8 @@ sorry
 *)
 
 (*
+[This theorem should probably move up to just below the axioms for a projective plane -- jfh]
+
 attempt to state a theorem about the the relation between the number of points on a line and
 the number of points in the projective plane - Homer
 lemma line_points_to_plane_points: "\<lbrakk>affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow> 
