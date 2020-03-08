@@ -1,12 +1,13 @@
 theory Chapter1
   imports Complex_Main
 
+
 begin
-declare [[smt_timeout = 120]]
+declare [[smt_timeout = 200]]
 section \<open>Preface\<close>
 text \<open>
 \spike
-This book is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
+This text is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
 using the Isabelle proof assistant, primarily relying on Isar. Quotations 
 from Hartshorne appear indented, with a blue line to the left. Additional material 
 written by either the professor (John (Spike) Hughes) or various students are surrounded by colored 
@@ -22,11 +23,11 @@ to the text, so Proposition 1.1 in the text is called \texttt{Prop1P1}, with ``P
 for instance. 
 
 We've based our theory on "Complex\_Main" instead of main so that we have the datatype "real". To 
-characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabell 
+characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabelle 
 construct that lets us say ``this entity satisfies this collection of defining axioms.''
 \done\<close>
 
-section \<open>Introduction: Affine Planes and Projective Planes\<close>
+chapter \<open>Introduction: Affine Planes and Projective Planes\<close>
 text \<open>
 \begin{hartshorne}
 Projective geometry is concerned with properties of incidence --- properties which are 
@@ -37,7 +38,7 @@ and there we will use all the techniques available (e.g. those of Euclidean geom
 geometry) to see what is true and what is not true.
 \end{hartshorne}\<close>
 
-subsection \<open>Affine geometry\<close>
+section \<open>Affine geometry\<close>
 text\<open>
 \begin{hartshorne}
 Let us start with some of the most elementary facts of ordinary plane geometry, which we will
@@ -151,7 +152,9 @@ order.
 \done\<close>
 
   lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
-  proof -
+    using parallel_def by auto
+(*
+proof -
     fix l :: "'line" and m :: "'line"
     assume one_direction: "l || m"
     show "m || l"
@@ -164,16 +167,23 @@ order.
         by (simp add: parallel_def)
     qed
   qed
+*)
 
   lemma reflexive_parallel: "l || l"
+    using parallel_def by blast
+(*
   proof - 
     have "l = l" 
       by auto
     thus "l || l"
       using parallel_def by auto
   qed
+*)
 
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
+    by (metis a2 parallel_def)
+
+(*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
     assume lm: "l || m"
@@ -188,6 +198,20 @@ order.
         by (metis a2 lm parallel_def)
     qed
   qed
+*)
+  text \<open>\daniel\haoze Equivalence relations can be proved using the following structure with
+exported rules.\<close>
+lemma equivp_parallel: "equivp parallel"
+proof (rule equivpI)
+  show "reflp parallel"
+    by (simp add: reflexive_parallel reflpI)
+  show "symp parallel"
+    by (simp add: symmetric_parallel sympI)
+  show "transp parallel"
+    by (simp add: transitive_parallel transpI)
+qed
+  text \<open>\done\<close>
+
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
@@ -236,14 +260,54 @@ This is the smallest affine plane. [NB: We'll return to this final claim present
 \end{hartshorne}
 \<close>
 
+  (* Two lines meet in at most one point *)
+  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
+    using a1 by auto
+
+
+text \<open>\daniel
+We can also prove some basic theorems about affine planes not in Hartshorne. \done\<close>
+  (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
+  (* Every point lies on some line *)
+  lemma (in affine_plane) containing_line: "\<forall>S. \<exists>l. meets S l"
+    using a2 by blast
+
+  (* Every line contains at least one point *)
+  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
+    using a1 a2 a3 parallel_def collinear_def by metis
+
+
+text \<open>\daniel\<close>
+
+lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
+  proof -
+    fix l::"'line"
+    obtain S where S:"meets S l" using contained_point
+      by auto
+    obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+      using a3 by blast
+    obtain A B where AB: "A \<noteq> B \<and> A \<noteq> S \<and> B \<noteq> S \<and> \<not> collinear A B S"
+      by (smt PQR collinear_def prop1P2)
+    obtain C where C: "(C=A \<or> C=B) \<and> \<not> meets C l"
+      using AB S collinear_def by blast
+    obtain m where m: "meets C m \<and> meets S m"
+      by (metis AB a1)
+    obtain D where D: "(D = A \<or> D = B) \<and> D \<noteq> C"
+      using AB by blast
+    thus ?thesis
+      by (smt AB C D S a2 affine_plane_data.collinear_def m parallel_def symmetric_parallel transitive_parallel)
+  qed
+
+  text \<open>\done\<close>
+
   section  \<open> The real affine plane\<close>
   text \<open> Hartshorne mentioned, just after the definition of an affine plane and some notational 
 notes, that the ordinary affine plane is an example of an affine plane. We should prove 
 that it's actually an affine plane. It's pretty clear how to represent points --- pairs of real 
 numbers --- but what about lines? A line is the set of points satisfying an equation of 
 the form Ax + By + C = 0, with not both of A and B being zero. The problem is that there's 
-no datatype for "pair of real numbers, at least one of which is nonzero". We'll have 
-to hack this by breaking lines into "ordinary" and "vertical", alas.   \<close>
+no datatype for ``pair of real numbers, at least one of which is nonzero''. We'll have 
+to hack this by breaking lines into ``ordinary'' and ``vertical'', alas.   \<close>
 
   datatype a2pt = A2Point "real" "real"
 
@@ -262,10 +326,10 @@ as a forall rather than exists. I think this might make things easier.\<close>
   text\<open>Now some small lemmas, basically establishing the three axioms \<close>
   text\<open> I'm going to venture into a new style of writing theorems and proofs, one that's
 particularly applicable when you're showing something exists by constructing it. Here is 
-an example in the case of real numbers: if r < s, then there's a real number strictly between
-them. We could write this as "r < s shows that there is a t . ((r < t) and (t < s))" (although it turns out we'd have
-to start with "(r::real) < s ..." to tell Isar not to assume that r is a natural number -- after all, 
-this is one of those cases where type-inference has no idea whether "<" means less-than on the reals,
+an example in the case of real numbers: if $r < s$, then there's a real number strictly between
+them. We could write this as ``$r < s$ shows that there is a $t$ . ($(r < t)$ and $(t < s)$)'' (although it turns out we'd have
+to start with ``\texttt{(r::real) < s ...}'' to tell Isar not to assume that r is a natural number -- after all, 
+this is one of those cases where type-inference has no idea whether ``$<$'' means less-than on the reals,
 or the integers, or the natural numbers, or ...)
 
 Anyhow, in this new style, we would write the theorem like this:
@@ -407,7 +471,7 @@ proof (cases P)
       by simp
     obtain line2 where eq: "line2 = (A2Ordinary slope intercept2)" 
       by simp
-    have PonLine2: "a2meets P line2" try
+    have PonLine2: "a2meets P line2"
       by (simp add: P a eq)
     then show ?thesis
       by (smt A2Ordinary a2meets.elims(2) a2meets.simps(1) a2parallel_def eq) 
@@ -631,19 +695,10 @@ theorem A2_affine: "affine_plane(a2meets)"
   apply (simp add: affine_plane_data.collinear_def)
   using A2_a3 by auto
 
-text\<open>\done \done\<close>
-  (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
-  (* Every point lies on some line *)
-  lemma (in affine_plane) containing_line: " \<forall>S. \<exists>l. meets S l"
-    sorry
 
-  (* Every line contains at least one point *)
-  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
-    sorry
+text\<open>\done \done  Examples of some easy theorems about affine planes, not mentioned in Hartshorne. \jackson \<close>      
 
-  (* Two lines meet in at most one point *)
-  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
-    sorry
+
 
 (* Some HW Problems to give you practice with Isabelle:
 Try to state and prove these:
@@ -652,8 +707,34 @@ with "sorry" as a "proof".
 2. Every line contains at least three points [false!]
 *)
 
-lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
-  sorry
+text\<open>To prove that every line contains at least two points, firstly we should think about where the
+contradiction is when the line contains only one point. Usually, contradiction happens when something
+violates a unique existence. For example, in A2, if an assumption leads to the conclusion that there
+are more lines that could parallel to a specific line passing through the same point, then the assumption
+is proved to be false. Here are the ideas for our proof.
+
+i. If l only contains one point Q and point P != point Q, then every line passing through P is parallel
+to l.
+ii. To prove the contradiction to A2, we have to prove there are at least two lines passing through P. 
+NB: need lemma contained-lines: for every point, there are at least two lines that pass through that point.
+iii.Lemma contained-lines can be proved with the three non-collinear points P Q R in A3. Two cases:
+1. The point is P or Q or R. 2. The point T is different from those 3 points. Then PT, QT, RT cannot
+be the same line, which proves that at least two lines pass through T.
+
+(I'm still Struggling with the grammar in Isabelle. I’ll try to finish these two lemmas soon and
+ I’m also looking for help ;)
+\siqi\<close>
+(* lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
+  sorry *)
+(*
+proof -
+  fix S P Q R
+  fix SP SQ SR PQ PR QR
+  assume "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+  assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
+  
+*)
+
 
   text \<open>
  We now try to prove that every affine plane contains at least four points. Sledgehammer 
@@ -683,11 +764,29 @@ ix.  Hence S != P, S != Q.
 x. Similar (arguing about l), we get  S != R. 
 
 xi. Hence the four points P,Q,R,S are all distinct, and we are done. 
-\<close>
-  proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q :: 'point) (R :: 'point) (S :: 'point). 
+\caleb \seiji\<close>
+proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q :: 'point) (R :: 'point) (S :: 'point). 
       P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> P \<noteq> S \<and> Q \<noteq> S \<and> R \<noteq> S"
-    sorry
+    proof -
+      obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+        using a3 by blast
+      obtain PQ where PQ: "meets P PQ \<and> meets Q PQ" 
+        using a1 PQR by blast
+      obtain l where l: "meets R l \<and> l || PQ"
+        by (metis PQ PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
+      obtain QR where QR: "meets Q QR \<and> meets R QR" 
+        using a1 PQR by blast
+      obtain m where m: "meets P m \<and> m || QR"
+        by (metis QR PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
+      obtain S where S: "meets S l \<and> meets S m"
+        by (metis (no_types, lifting) PQ QR affine_plane.a2 affine_plane_axioms l m parallel_def)
+      have "S \<noteq> P \<and> S \<noteq> Q \<and> S \<noteq> R"
+        by (metis PQ PQR QR S affine_plane_data.collinear_def affine_plane_data.parallel_def l m)
+      thus ?thesis
+        using PQR by blast
+    qed
 
+    text\<open>\done \done\<close>
 (* We've now proved the first assertion in the Example after Prop 1.2; we must also show there
 IS an affine plane with four points. We'll do this two ways: by explicit construction, and
 by using the wonderful "nitpick" 'prover'. *)
@@ -752,8 +851,8 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
 proposition four_points_sufficient: "affine_plane plmeets"
-  sorry
-(* Proof, but one that needs more time to complete, so Isabelle times out...
+  
+(* Proof, but one that needs more time to complete, so Isabelle times out...*)
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
@@ -761,7 +860,7 @@ proposition four_points_sufficient: "affine_plane plmeets"
     apply (simp add: affine_plane_data.collinear_def)
     using four_points_a3 apply (blast)
     done
-*) 
+(**) 
 
 (* There's another way to show the existence of a 4-point affine plane: you claim that they 
 must have at least 5 points, and let "nitpick" show that you're wrong. I'm going to use some
@@ -930,6 +1029,13 @@ with the work on the 7-point plane, etc.
     p3: "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R" and
     p4: "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> meets P l \<and> meets Q l \<and> meets R l"
 
+begin
+
+(* right here is where many small theorems about projective planes should go, theorems like "any
+two lines in a projective plane have the same cardinality", etc. -- Spike *)
+
+end
+
   (* Pending: The "Ideal" constructor probably needs to take a pencil of lines, or a quotient type *)
   datatype ('point, 'line) projPoint = Ordinary 'point | Ideal 'line
   datatype ('point, 'line) projLine = OrdinaryL 'line | Infty 
@@ -1007,11 +1113,37 @@ with the work on the 7-point plane, etc.
     "pmeets Rpt LAI = False" |
     "pmeets Spt LAI = False" 
 
-theorem "projective_plane pmeets"
+  text \<open>Show that pmeets satisfies the projective plane axioms: \jackson \<close>
+
+(* all of these can be proved by maaaany cases ... *)
+lemma "pmeets_p1": "\<forall>P Q. P \<noteq> Q \<longrightarrow> (\<exists>!l. pmeets P l \<and> pmeets Q l)"
   sorry
+lemma "pmeets_p2": "\<forall>l m. l \<noteq> m \<longrightarrow> (\<exists>!P. pmeets P l \<and> pmeets P m)"
+  sorry
+lemma "pmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear pmeets P Q R"
+  by (smt pmeets.simps(1) pmeets.simps(24) pmeets.simps(3) pmeets_p2 ppts.distinct(8) projective_plane_data.collinear_def)
+lemma "pmeets_p4": "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> pmeets P l \<and> pmeets Q l \<and> pmeets R l"
+  sorry
+
+theorem "projective_plane pmeets"
+  unfolding projective_plane_def
+  using pmeets_p1 pmeets_p2 pmeets_p3 pmeets_p4 by auto
+
+text \<open>\done\<close>
+
 (*
 theorem projectivization_p1: "\<lbrakk>P \<noteq> Q; affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow>  \<exists>l. pm P l \<and> pm Q l"
 sorry 
+*)
+
+(*
+[This theorem should probably move up to just below the axioms for a projective plane -- jfh]
+
+attempt to state a theorem about the the relation between the number of points on a line and
+the number of points in the projective plane - Homer
+lemma line_points_to_plane_points: "\<lbrakk>affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow> 
+        \<forall> l . card({P . pm P l}) = n \<longrightarrow> card({Q . \<exists> k . pm Q k}) = (n-1)^2 + n"
+  sorry
 *)
 end
 

@@ -1,0 +1,2 @@
+#!/bin/sh
+isabelle build -v -d . -o browser_info -o document=pdf geometry

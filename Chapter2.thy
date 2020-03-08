@@ -17,6 +17,7 @@ Q &= AC \cdot A'C' \\
 \end{align*}
 which lie on a straight line.
 
+
 \end{hartshorne}\<close>
 
 text \<open>\begin{hartshorne}
@@ -219,11 +220,41 @@ R &= BC \cdot B'C'.
 Check that all $10$ points are distinct. If Desargues’ Theorem is true in $\Pi,$ then $P,Q,R$ 
 lie on a 
 line, hence these $10$ points and $10$ lines form a confined configuration, which 
-must lie in $\pi0,$ and that's a contradiction, 
+must lie in $\pi_0,$ and that's a contradiction, 
  since $\pi_0$ has only four points.
 \end{hartshorne}\<close>
 
+locale free_projective_plane_data =
+    fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
+begin
+datatype fpoint = A | B | C | D | Intersect nat fline fline and
+fline = Join nat fpoint fpoint
+
+text \<open>Now we want to build a pair, consisting of a point set PS and a line set LS, and define 
+functions called ``Plevel'' and ``Llevel'' that returns the level of any point or line. The level for 
+$A,B,C,D $ is zero; for other points and lines, it's the ``nat'' that's part of the constructor
+data.
+
+Then we want to assert that \textbf{if} several things are true, namely
+\begin{itemize}
+\item if $U \in PS$ and $Plevel(U) = 0$, then $U = A,B,C,$ or $D$.  
+\item if $k \in LS$ then $Llevel(k) > 0$.  
+\item $Join (n P Q) \in LS$ implies that $P,Q \in PS, level(P) < n, level(Q) < n$.
+\item $Intersect (n k m) \in PS$ implies that $k,m \in LS, level(k) < n, level(m) < n$.
+\end{itemize}
+and a couple more that say that whenever two points aren't already on a line, their ``Join'' is in 
+the line-set, and the dual of this, \textbf{then} $LS$ and $PS$ cannot contain a Desargues configuration 
+because it'd have to be at level zero, which only contains four points. 
+
+Presumably we need some lemmas first, like "if P = Intersect (n k m) and level(l) < n, then NOT meets 
+P l" (i.e., k and m are the only lines of level less than n that intersect P). 
+
+Oops! Slight revision: should an element of LS be a SET of points? That seems to be Hartshorne's 
+definition, and it's a legal line if its intersection with level n is a line at level n, for all sufficiently large n.
+
+  \<close>
+(* Need to make some assumptions about flines and fpoints, then prove configs lie in pi0. *)
 
 end
-
+end
 
