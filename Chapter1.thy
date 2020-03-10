@@ -725,7 +725,7 @@ be the same line, which proves that at least two lines pass through T.
  I’m also looking for help ;)
 \siqi\<close>
 lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
-(* sorry *)
+sorry 
 (*
 proof -
   obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
@@ -1086,6 +1086,29 @@ begin
 
 (* right here is where many small theorems about projective planes should go, theorems like "any
 two lines in a projective plane have the same cardinality", etc. -- Spike *)
+
+lemma pointOffLines:
+  fixes l and m
+  assumes "l \<noteq> m"
+  shows "\<exists>T. (\<not> meets T l) \<and> (\<not> meets T m)"
+proof -
+  obtain I where I: "meets I l \<and> meets I m" 
+    using p2 assms by blast
+  obtain P where P: "meets P l \<and> P \<noteq> I" 
+    using assms p4 I by metis
+  obtain Q where Q: "meets Q m \<and> Q \<noteq> I"
+    using assms p4 I by metis
+   obtain PQ where PQ: "meets P PQ \<and> meets Q PQ"
+    using P Q p1 by metis
+  obtain R where R: "meets R PQ \<and> P \<noteq> R \<and> Q \<noteq> R"
+    using p4 by blast
+  have not_on_l: "\<not> meets R l"
+    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+  have not_on_m: "\<not> meets R m"
+    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+  thus ?thesis
+    using not_on_l by auto 
+qed
 
 end
 
