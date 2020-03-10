@@ -17,6 +17,7 @@ Q &= AC \cdot A'C' \\
 \end{align*}
 which lie on a straight line.
 
+
 \end{hartshorne}\<close>
 
 text \<open>\begin{hartshorne}
