@@ -724,15 +724,68 @@ be the same line, which proves that at least two lines pass through T.
 (I'm still Struggling with the grammar in Isabelle. I’ll try to finish these two lemmas soon and
  I’m also looking for help ;)
 \siqi\<close>
-(* lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
-  sorry *)
+lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
+sorry 
 (*
 proof -
-  fix S P Q R
-  fix SP SQ SR PQ PR QR
-  assume "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
-  assume "meets S SP \<and> meets S SQ \<and> meets S SR \<and> meets P PQ \<and> meets P PR \<and> meets R QR"
-  
+  obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+    using a3 by auto
+  fix S
+  show ?thesis
+  proof (cases "S \<noteq> P \<and> S \<noteq> Q \<and> S \<noteq> R")
+    case True
+    then obtain SP where SP: " meets S SP \<and> meets P SP"
+      using a1 by blast
+    obtain SR where SR: "meets S SR \<and> meets R SR" 
+      using True a1 by blast
+    obtain SQ where SQ: "meets S SQ \<and> meets Q SQ"
+      using True a1 by blast
+    have nosameline: "\<nexists>l. l=SP \<and> l=SQ \<and> l=SR" try
+      using PQR SP SQ SR affine_plane_data.collinear_def by force
+    have differtwolines: "SP \<noteq> SQ \<or> SP \<noteq> SR \<or> SQ \<noteq> SR"
+      using nosameline by auto
+    then show "\<exists>l,m \<in> {SP, SQ, SR}. l\<noteq>m \<and> meets S l \<and> meets S m"
+    show ?thesis
+      sorry
+  next
+    case False
+    show ?thesis
+  proof (cases "S = P")
+    case True
+    then obtain SQ1 where SQ1: "meets S SQ1 \<and> meets Q SQ1"
+      by (metis PQR affine_plane.a1 affine_plane_axioms)
+    obtain SR1 where SR1: "meets S SR1 \<and> meets R SR1"
+      by (metis PQR a1)
+    have nosameline1: "SQ1 \<noteq> SR1" 
+      using PQR SQ1 SR1 True affine_plane_data.collinear_def by force
+    have "SQ1 \<noteq> SR1 \<and> meets S SQ1 \<and> meets S SR1"try
+      by (simp add: SQ1 SR1 nosameline1)
+    show ?thesis
+      sorry
+    next 
+      case False
+      show ?thesis
+      proof (cases "S = Q")
+        case True
+        then obtain SP2 where SP2: "meets S SP2 \<and> meets P SP2" 
+          using False affine_plane.a1 affine_plane_axioms by fastforce
+        obtain SR2 where SR2: "meets S SR2 \<and> meets R SR2"
+          by (metis PQR a1)
+        have nosameline2: "SP2 \<noteq> SR2"
+          using PQR SP2 SR2 True affine_plane_data.collinear_def by force
+        have "SP2 \<noteq> SR2 \<and> meets S SP2 \<and> meets S SR2"
+          using SP2 SR2 nosameline2 by blast
+        show ?thesis
+          sorry
+        case False
+        then obtain SP3 where SP3: "meets S SP3 \<and> meets P SP3"
+          using True by blast
+        obtain SQ3 where SQ3: "meets S SQ3 \<and> meets Q SQ3"
+          using False True by blast
+        have nosameline3: "SP3 \<noteq> SQ3"
+          using False True by auto
+        have "SP3 \<noteq> SQ3 \<and> meets S SP3 \<and> meets S SQ3"
+          using False True by auto
 *)
 
 
@@ -1033,6 +1086,29 @@ begin
 
 (* right here is where many small theorems about projective planes should go, theorems like "any
 two lines in a projective plane have the same cardinality", etc. -- Spike *)
+
+lemma pointOffLines:
+  fixes l and m
+  assumes "l \<noteq> m"
+  shows "\<exists>T. (\<not> meets T l) \<and> (\<not> meets T m)"
+proof -
+  obtain I where I: "meets I l \<and> meets I m" 
+    using p2 assms by blast
+  obtain P where P: "meets P l \<and> P \<noteq> I" 
+    using assms p4 I by metis
+  obtain Q where Q: "meets Q m \<and> Q \<noteq> I"
+    using assms p4 I by metis
+   obtain PQ where PQ: "meets P PQ \<and> meets Q PQ"
+    using P Q p1 by metis
+  obtain R where R: "meets R PQ \<and> P \<noteq> R \<and> Q \<noteq> R"
+    using p4 by blast
+  have not_on_l: "\<not> meets R l"
+    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+  have not_on_m: "\<not> meets R m"
+    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+  thus ?thesis
+    using not_on_l by auto 
+qed
 
 end
 
