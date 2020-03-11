@@ -97,8 +97,6 @@ lemma "pmeets_p4": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<
 proof - 
   obtain A where A:"\<not> meets l A" using dmeets_def dmeets_p3
     by (smt projective_plane_data.collinear_def)
-  then have "\<not>dmeets A l"
-    by (simp add: dmeets_def)
   obtain m n k where mnk:"meets m A \<and> meets n A \<and> meets k A \<and> m \<noteq> n \<and> n \<noteq> k \<and> m \<noteq>k"
     using p4 by blast
   obtain P where P: "meets l P \<and> meets m P"
@@ -113,7 +111,8 @@ proof -
 qed
 
 theorem "projective_plane dmeets"
-  sorry
+  unfolding projective_plane_def
+  using dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 by blast 
 end
 
 
