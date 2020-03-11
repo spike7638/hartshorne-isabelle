@@ -110,9 +110,23 @@ proof -
   thus ?thesis unfolding dmeets_def by auto
 qed
 
-theorem "projective_plane dmeets"
+text\<open>\daniel This allows us an easy way to prove the duals of theorems
+in a projective plane\<close>
+
+theorem dualthm:"projective_plane dmeets"
   unfolding projective_plane_def
-  using dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 by blast 
+  using dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 by blast
+
+
+interpretation dual:projective_plane dmeets using dualthm by simp
+
+lemma linesOffPoints: (* dual of pointOffLines *)
+  fixes P::"'point" and Q::"'point"
+  assumes "P \<noteq> Q"
+  shows "\<exists>l::'line. (\<not> meets P l) \<and> (\<not> meets Q l)"
+  using pointOffLines dual.pointOffLines assms dmeets_def by blast
+
+text\<open>\done\<close>
 end
 
 
