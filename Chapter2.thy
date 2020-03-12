@@ -1,5 +1,5 @@
 theory Chapter2
-  imports Chapter1
+  imports Chapter1 Complex_Main
 
 begin
 
@@ -18,9 +18,72 @@ Q &= AC \cdot A'C' \\
 which lie on a straight line.
 
 
-\end{hartshorne}\<close>
+\end{hartshorne}
+Big thanks to Anthony Bordg for inspiring this section's format and enlightening mysterious Isabelle
+symbols.\seiji \caleb
+\<close>
+locale desarguian_plane_data = 
+ projective_plane dpmeets for
+  dpmeets :: "'point \<Rightarrow> 'line \<Rightarrow> bool" 
+begin
+definition triangle :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool" 
+  where "triangle a b c \<longleftrightarrow> a \<noteq> b \<and> b \<noteq> c \<and> a \<noteq> c \<and> \<not> projective_plane_data.collinear dpmeets a b c" 
 
-text \<open>\begin{hartshorne}
+definition distinct7 :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+  where "distinct7 a b c d e f g \<longleftrightarrow> (a \<noteq> b) \<and> (a \<noteq> c) \<and> (a \<noteq> d) \<and> (a \<noteq> e) \<and> (a \<noteq>
+f) \<and> (a \<noteq> g) \<and>
+(b \<noteq> c) \<and> (b \<noteq> d) \<and> (b \<noteq> e) \<and> (b \<noteq> f) \<and> (b \<noteq> g) \<and>
+(c \<noteq> d) \<and> (c \<noteq> e) \<and> (c \<noteq> f) \<and> (c \<noteq> g) \<and>
+(d \<noteq> e) \<and> (d \<noteq> f) \<and> (d \<noteq> g) \<and>
+(e \<noteq> f) \<and> (e \<noteq> g) \<and>
+(f \<noteq> g)"
+
+definition distinct6 :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+  where "distinct6 a b c d e f  \<longleftrightarrow> (a \<noteq> b) \<and> (a \<noteq> c) \<and> (a \<noteq> d) \<and> (a \<noteq> e) \<and> (a \<noteq>
+f) \<and> (b \<noteq> c) \<and> (b \<noteq> d) \<and> (b \<noteq> e) \<and> (b \<noteq> f)  \<and>
+(c \<noteq> d) \<and> (c \<noteq> e) \<and> (c \<noteq> f) \<and>
+(d \<noteq> e) \<and> (d \<noteq> f) \<and>
+(e \<noteq> f)"
+
+definition perspective_from_point :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 
+'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+  where "perspective_from_point p a b c a' b' c' \<longleftrightarrow> distinct7 p a b c a' b' c' 
+\<and> triangle a b c \<and> triangle a' b' c' \<and> projective_plane_data.collinear dpmeets a a' p \<and>
+ projective_plane_data.collinear dpmeets b b' p \<and> projective_plane_data.collinear dpmeets c c' p"
+
+definition line_containing :: "'point \<Rightarrow> 'point \<Rightarrow> 'line" 
+  where "line_containing a b \<equiv> @L. dpmeets a L \<and> dpmeets b L" 
+
+definition intersect :: "'line \<Rightarrow> 'line \<Rightarrow> 'point"
+  where "intersect A B \<equiv> @p. dpmeets p A \<and> dpmeets p B"
+
+definition perspective_from_line :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 
+'point \<Rightarrow> 'point \<Rightarrow> bool" 
+  where "perspective_from_line a b c a' b' c' \<longleftrightarrow> distinct6 a b c a' b' c' \<and> triangle a b c \<and>
+triangle a' b' c' \<and> 
+(line_containing a b) \<noteq> (line_containing a' b') \<and> 
+(line_containing b c) \<noteq> (line_containing b' c') \<and> 
+(line_containing a c) \<noteq> (line_containing a' c') \<and> (projective_plane_data.collinear 
+dpmeets (intersect (line_containing a b) (line_containing a' b')) 
+(intersect (line_containing b c) (line_containing b' c')) 
+(intersect (line_containing a c) (line_containing a' c')))"
+
+(* definition desargues_property :: "bool" 
+  where "desargues_property \<equiv> \<forall> p a b c a' b' c' . 
+perspective_from_point p a b c a' b' c' \<longrightarrow> perspective_from_line a b c a' b' c'"
+
+ *)
+end
+
+locale desarguian_proj_plane = 
+ desarguian_plane_data + 
+assumes
+  p5: "\<forall> p a b c a' b' c' . 
+perspective_from_point p a b c a' b' c' \<longrightarrow> perspective_from_line a b c a' b' c'"
+begin
+
+end
+text \<open>\done \done \begin{hartshorne}
 Now it is not quite right for us to call this a ``theorem,'' because it cannot be proved from our 
 axioms P1–P4. However, we will show that it is true in the real projective plane (and, more 
 generally, in any projective plane which can be embedded in a three-dimensional projective space).
