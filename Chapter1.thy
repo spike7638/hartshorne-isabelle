@@ -1,31 +1,9 @@
-theory Chapter1
-  imports Complex_Main
-
-
-begin
-declare [[smt_timeout = 200]]
-section \<open>Preface\<close>
-text \<open>
-\spike
-This text is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
-using the Isabelle proof assistant, primarily relying on Isar. Quotations 
-from Hartshorne appear indented, with a blue line to the left. Additional material 
-written by either the professor (John (Spike) Hughes) or various students are surrounded by colored 
-markers, like this:
-\spike
-This is something written by Spike
-\done
-with the black marker indicating the end of the section written by Spike (except that in this case, 
-it's part of a larger section Spike wrote). 
-
-Within Isabelle, numbered propositions or theorems from Hartshorne are given names that tie back 
-to the text, so Proposition 1.1 in the text is called \texttt{Prop1P1}, with ``P'' replacing the period, 
-for instance. 
-
-We've based our theory on "Complex\_Main" instead of main so that we have the datatype "real". To 
-characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabelle 
-construct that lets us say ``this entity satisfies this collection of defining axioms.''
-\done\<close>
+(* Things left to do in Chapter 1:
+  ** Prove that the completion of an affine plane is a projective plane. 
+  ** do the "problems" from the back of the book about the cardinality of lines in 
+     an affine plane, or a projective plane, etc. --- basically the first five or six
+     problems from the back of the book. 
+*)
 
 chapter \<open>Introduction: Affine Planes and Projective Planes\<close>
 text \<open>
@@ -79,14 +57,25 @@ To translate to Isabelle, we are saying that to have an affine plane, you need t
 how we choose to represent
 sets in Isabelle), and a relationship between them. The statement "meets P l" indicates the notion
 that the "point" P lies on the "line" l. For Hartshorne, we would say P is an element of l, but using
-point sets as lines turns out to be a horrible idea in Isabelle, so we just deal with "meets". 
+point sets as lines turns out to be a horrible idea in Isabelle, so we just deal with `meets.' 
 \<close>
+text \<open>
+We've based our theory on "Complex\_Main" instead of main so that we have the datatype "real". To 
+characterize affine and projective planes (the main topics of study) we use ``locales'', an Isabelle 
+construct that lets us say ``this entity satisfies this collection of defining axioms.'' The declaration
+about ``smt\_timeout'' lets one of the solvers we use have extra time in which to 
+discover or confirm correctness of proofs. \done
+\<close>
+theory Chapter1
+  imports Complex_Main
+
+begin
+declare [[smt_timeout = 200]]
 
 locale affine_plane_data =
     fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
 
-  begin
-
+begin
     definition parallel:: "'line  \<Rightarrow> 'line \<Rightarrow> bool" (infix "||" 50)
       where "l || m \<longleftrightarrow> (l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))"
  
@@ -106,7 +95,6 @@ locale affine_plane_data =
 begin
 
 text \<open>
-\done
 \begin{hartshorne}
 Example. The ordinary plane, known to us from Euclidean geometry, satisfies the axioms A1–A3, and 
 therefore is an affine plane. [NB: We'll return to this below. -- jfh]
@@ -153,7 +141,12 @@ order.
 
   lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
     using parallel_def by auto
-(*
+
+text \<open>
+\spike
+Here's the original proof of that theorem; apparently practice makes perfect (or at least it
+shortens things a good deal:
+\begin{lstlisting}[language=Isabelle]{}
 proof -
     fix l :: "'line" and m :: "'line"
     assume one_direction: "l || m"
@@ -167,7 +160,9 @@ proof -
         by (simp add: parallel_def)
     qed
   qed
-*)
+\end{lstlisting}
+\done\<close>
+
 
   lemma reflexive_parallel: "l || l"
     using parallel_def by blast
@@ -179,10 +174,8 @@ proof -
       using parallel_def by auto
   qed
 *)
-
   lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
     by (metis a2 parallel_def)
-
 (*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
@@ -211,11 +204,10 @@ proof (rule equivpI)
     by (simp add: transitive_parallel transpI)
 qed
   text \<open>\done\<close>
-
 end
 
 text  \<open>\spike To help Isabelle along, we insert a tiny theorem giving a different 
-characterization of parallelism \done\<close>
+characterization of parallelism. \done\<close>
 
 theorem (in affine_plane_data) parallel_alt:
   fixes l
@@ -247,7 +239,7 @@ and hence $PQ \parallel QR$ by Proposition 1.1. This is impossible, however, bec
 and both contain $Q.$
 
 Hence $l$ must meet $m$ in some point $S.$ Since $S$ lies on $m,$ which is parallel to $PQ$, and 
-different from $PQ,$ $S$ does not lie on $PQ,$ so $S\ne P$,and $S \ne Q$.Similarly $S \ne R$. Thus
+different from $PQ,$ $S$ does not lie on $PQ,$ so $S\ne P$,and $S \ne Q$ .Similarly $S \ne R$. Thus
 $S$ is indeed a fourth point. This proves the first assertion.
 
 Now consider the lines $PR$ and $QS$. It
@@ -266,7 +258,8 @@ This is the smallest affine plane. [NB: We'll return to this final claim present
 
 
 text \<open>\daniel
-We can also prove some basic theorems about affine planes not in Hartshorne. \done\<close>
+We can also prove some basic theorems about affine planes not in Hartshorne. The first is that every
+point lies on some line; the second is that every line contains at least one point. \done\<close>
   (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
   (* Every point lies on some line *)
   lemma (in affine_plane) containing_line: "\<forall>S. \<exists>l. meets S l"
@@ -277,7 +270,8 @@ We can also prove some basic theorems about affine planes not in Hartshorne. \do
     using a1 a2 a3 parallel_def collinear_def by metis
 
 
-text \<open>\daniel\<close>
+  text \<open>\daniel We enlarge on these to show that every line contains at least \emph{two} points;
+we could also show (but don't) that every point lies on at least two lines.\<close>
 
 lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
   proof -
@@ -313,7 +307,8 @@ to hack this by breaking lines into ``ordinary'' and ``vertical'', alas.   \<clo
 
   datatype a2ln = A2Ordinary "real" "real" 
                 | A2Vertical "real"
-  text "Ordinary m b represents the line y = mx+b; Vertical xo is the line x = xo "
+  text "Ordinary m b represents the line y = mx+b; Vertical xo is the line x = xo. With this in 
+mind, we define the  `meets' operation for this purported plane, using cases for the definition."
 
   fun a2meets :: "a2pt \<Rightarrow> a2ln \<Rightarrow> bool" where
     "a2meets (A2Point x y) (A2Ordinary m b) = (y = m*x + b)" |
@@ -323,7 +318,7 @@ to hack this by breaking lines into ``ordinary'' and ``vertical'', alas.   \<clo
       where "l a2|| m \<longleftrightarrow> (l = m \<or>  (\<forall> P. (\<not> a2meets P l)  \<or> (\<not>a2meets P m)))"
   text\<open> Notice that I've written the definition of parallel for the euclidean affine plane
 as a forall rather than exists. I think this might make things easier.\<close>
-  text\<open>Now some small lemmas, basically establishing the three axioms \<close>
+  text\<open>Now we'll write some small lemmas, basically establishing the three axioms.\<close>
   text\<open> I'm going to venture into a new style of writing theorems and proofs, one that's
 particularly applicable when you're showing something exists by constructing it. Here is 
 an example in the case of real numbers: if $r < s$, then there's a real number strictly between
@@ -332,11 +327,9 @@ to start with ``\texttt{(r::real) < s ...}'' to tell Isar not to assume that r i
 this is one of those cases where type-inference has no idea whether ``$<$'' means less-than on the reals,
 or the integers, or the natural numbers, or ...)
 
-Anyhow, in this new style, we would write the theorem like this:
-\<close>
+Anyhow, in this new style, we would type the theorem like this:
 
-
-(* REMOVE THESE COMMENTS once we understand how to  quote isabelle stuff in text 
+\begin{lstlisting}[language=Isabelle]{}
 theorem mid:
   fixes r :: real
   assumes lt : "r < s"
@@ -345,7 +338,8 @@ proof
   let ?t = "(r + s) / 2"
   from lt show "r < ?t \<and> ?t < s" by simp
 qed
-*)
+\end{lstlisting}
+\<close>
 
   text\<open>The nice thing about this style is that it takes care of "fix"ing things in the theorem statement,
 and takes care of assuming the antecedent (which we always end up doing in the proof anyhow), and
@@ -480,7 +474,7 @@ proof (cases P)
     by auto 
 qed
 
-text \<open> At this point, I went down a rabbit hole searching for proofs of the other half
+text \<open> \spike At this point, I went down a rabbit hole searching for proofs of the other half
 
 of axiom 2, and kept getting into trouble when dealing with the (pretty simple) algebra 
 of straight lines. So I backed off and proved a bunch of small lemmas, partly as practice 
@@ -488,7 +482,7 @@ at proving things, and partly to give Isabelle a helping hand when it came to mo
 things. So here are proofs of things like "a vertical and ordinary line cannot be parallel; if two 
 ordinary lines have different slopes, then they intersect; if two vertical lines intersect, they're 
 the same; if two ordinary lines with the same slope intersect, then they're the same; if two
-ordinary lines are parallel and intersect, then they're the same.  \<close>
+ordinary lines are parallel and intersect, then they're the same. \done \<close>
 
 text\<open> Let's start with something dead simple: the other form of parallelism: if 
 there's no P meeting both l and m, then they're parallel. \caleb\<close>
@@ -840,23 +834,28 @@ proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q 
     qed
 
     text\<open>\done \done\<close>
-(* We've now proved the first assertion in the Example after Prop 1.2; we must also show there
+    text\<open>\spike 
+We've now proved the first assertion in the Example after Prop 1.2; we must also show there
 IS an affine plane with four points. We'll do this two ways: by explicit construction, and
-by using the wonderful "nitpick" 'prover'. *)
+by using the wonderful ``nitpick'' prover.
 
-(* We start by defining two datatypes, each of which is just an enumerated type; there
-are four points and six suggestively-named lines: *)
-  datatype pts = Ppt | Qpt | Rpt | Spt
-  datatype lns = PQln | PRln | PSln | QRln | QSln | RSln
+We start by defining two datatypes, each of which is just an enumerated type; there
+are four points and six suggestively-named lines:
+\done\<close>
+datatype pts = Ppt | Qpt | Rpt | Spt
+datatype lns = PQln | PRln | PSln | QRln | QSln | RSln
+text\<open>\spike 
+Note: the above datatypes are meant to indicate that ``pts'' consists of four constructors,
+one for each of $P,Q,R$ and $S$, and that the line we'd call $PQ$ in math is here 
+constructed with
+$PQln$, and we'll define the point-to-line meeting function (i.e., "the point is on the line" so that 
+$P$ and $Q$ are on $PQln$, but $R$ and $S$ are not, etc. 
 
-(* Note: the above datatypes are meant to indicate that "pts" consists of four constructors, 
-one for each of P,Q,R and S, and that the line we'd call "PQ" in math is here constructed with
-PQln, and we'll define the point-to-line meeting function (i.e., "the point is on the line" so that 
-P and Q are on PQln, but R and S are not, etc. *)
+For the "meets" definition, the syntax looks OCaml-like.
 
-(* For the "meets" definition, the syntax looks OCaml-like *)
-(* We start by saying which points ARE on the various lines, and then follow with those that 
-are not. *)
+We start by saying which points \emph{are} on the various lines, and then follow with those that
+are not.
+\done\<close>
   fun plmeets :: "pts \<Rightarrow> lns \<Rightarrow> bool" where
     "plmeets Ppt PQln = True" |
     "plmeets Qpt PQln = True" |
@@ -884,15 +883,19 @@ are not. *)
     "plmeets Ppt RSln = False" |
     "plmeets Qpt RSln = False"
 
-  (* Now we'll assert that "plmeets" has all the properties needed to be an affine plane. *)
+text\<open>\spike 
+  Now we'll assert that "plmeets" has all the properties needed to be an affine plane.
+\done\<close>
   lemma four_points_a1: "P \<noteq> Q \<Longrightarrow> \<exists>! l . plmeets P l \<and> plmeets Q l"
     by (smt plmeets.elims(2) plmeets.simps(1) plmeets.simps(10) plmeets.simps(11) plmeets.simps(12) plmeets.simps(13) plmeets.simps(14) plmeets.simps(17) plmeets.simps(18) plmeets.simps(19) plmeets.simps(2) plmeets.simps(20) plmeets.simps(22) plmeets.simps(23) plmeets.simps(3) plmeets.simps(4) plmeets.simps(5) plmeets.simps(6) plmeets.simps(7) plmeets.simps(8) plmeets.simps(9) pts.exhaust)
 
   lemma four_points_a2a (*existence*): "\<not> plmeets (P :: pts) (l :: lns) \<Longrightarrow> \<exists>m. ((l = m)\<or> \<not> (\<exists> T. plmeets T l  \<and> plmeets T m)) \<and> plmeets P m"
     by (smt lns.simps(27) lns.simps(5) lns.simps(7) plmeets.elims(2) plmeets.simps(1) plmeets.simps(10) plmeets.simps(11) plmeets.simps(12) plmeets.simps(15) plmeets.simps(16) plmeets.simps(17) plmeets.simps(18) plmeets.simps(2) plmeets.simps(22) plmeets.simps(3) plmeets.simps(4) plmeets.simps(5) plmeets.simps(6) plmeets.simps(7) plmeets.simps(8) plmeets.simps(9) pts.exhaust)
 
-(*Exercise: change the first "\<or>" in the lemma above to "\<and>"; that makes the lemma no longer true.
-Attempt to prove it with "try" and then make sense of what the output is saying.  *)
+text\<open>\spike 
+Exercise: change the first "\<or>" in the lemma above to "\<and>"; that makes the lemma no longer true.
+Attempt to prove it with "try" and then make sense of what the output is saying. 
+\done\<close>
 
   lemma four_points_a2b(*uniqueness*): 
     "\<lbrakk>\<not> plmeets (P :: pts) (l :: lns); plmeets P m;  \<not> (\<exists> T. plmeets T l  \<and> plmeets T m); 
@@ -904,8 +907,6 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
 proposition four_points_sufficient: "affine_plane plmeets"
-  
-(* Proof, but one that needs more time to complete, so Isabelle times out...*)
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
@@ -913,24 +914,28 @@ proposition four_points_sufficient: "affine_plane plmeets"
     apply (simp add: affine_plane_data.collinear_def)
     using four_points_a3 apply (blast)
     done
-(**) 
 
-(* There's another way to show the existence of a 4-point affine plane: you claim that they 
-must have at least 5 points, and let "nitpick" show that you're wrong. I'm going to use some
+text\<open>\spike 
+There's another way to show the existence of a 4-point affine plane: you claim that they
+must have at least $5$ points, and let ``nitpick'' show that you're wrong. I'm going to use some
 fancy mumbo-jumbo to write this so I can avoid writing out all the pairwise non-equalities; 
-this fanciness is due to Manuel Eberl. *)
+this fanciness is due to Manuel Eberl.
 
-notepad 
+\begin{lstlisting}[language=Isabelle]{}
 begin
   fix meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
   assume "affine_plane meets"
 
   have "\<exists>A::'point set. finite A \<and> card A = 5"
-(*    by nitpick *)
-  sorry
+    by nitpick
 end
-(* Pretty nifty, hunh? It's a pain to try to read the output, but the gist is pretty clear: 4 points,
-6 lines, each consisting of two distinct points. *)
+\end{lstlisting}
+
+To actually see what that produces, you'll need to type the code above into Isabelle. 
+The results are pretty nifty, though,  hunh? 
+It's a pain to try to read the output, but the gist is pretty clear: 4 points,
+6 lines, each consisting of two distinct points.
+\done\<close>
 
 text  \<open> 
 \begin{hartshorne}
@@ -945,8 +950,6 @@ $X$ an element $T(x)=y
 $\forall y \in Y, \exists x \in X$ such that $T(x)=y.$
 \end{hartshorne}
 \<close>
-
-
   definition (in affine_plane_data) point_pencil :: "'point  \<Rightarrow> 'line set"
     where "point_pencil P = {l . meets P l}"
 
@@ -956,7 +959,7 @@ $\forall y \in Y, \exists x \in X$ such that $T(x)=y.$
 text  \<open> 
 \spike
   I've skipped the notion of 1-1 correspondence, because Isabelle already has a notion 
-  of bijections, I believe.
+  of bijections: there's a function "bij" that consumes a function and produces a boolean.
 \done
 \<close>
 
@@ -1086,7 +1089,12 @@ begin
 
 (* right here is where many small theorems about projective planes should go, theorems like "any
 two lines in a projective plane have the same cardinality", etc. -- Spike *)
-
+text  \<open> 
+\spike
+Here we have a few small theorems about projective planes, some from the exercises in Hartshorne,
+others that just arose during class. 
+ \done
+\<close>
 lemma pointOffLines:
   fixes l and m
   assumes "l \<noteq> m"

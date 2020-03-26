@@ -9,4 +9,5 @@ session "geometry" (AFP) = "HOL-Library" +
   document_files
     "root.tex"
     "book-defs.tex"
+    "isabelle-listings.sty"
  
