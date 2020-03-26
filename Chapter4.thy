@@ -110,6 +110,11 @@ proof -
   thus ?thesis unfolding dmeets_def by auto
 qed
 
+lemma "extra_line":
+  fixes P
+  shows "\<exists> k . \<not> meets P k"
+  using dmeets_def dmeets_p3 projective_plane_data.collinear_def by force
+
 text\<open>\daniel This allows us an easy way to prove the duals of theorems
 in a projective plane\<close>
 
