@@ -3,6 +3,7 @@ theory Chapter4
 
 
 begin
+declare [[smt_timeout = 200]]
 text \<open>
 \spike
 Soon to be filled in with some Hartshorne text. 
@@ -103,11 +104,28 @@ locale desarguian_projective_plane_plus =
     desarguian_proj_plane meets 
     for meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
 begin
+lemma perspective_implies_concurrent:
+  fixes a and b and c and a' and b' and c' and p
+  assumes "desarguian_plane_data.perspective_from_point local.dmeets p a b c a' b' c'"
+  shows "(projective_plane_data.concurrent meets a a' p)"
+proof -
+  obtain P where P: "local.dmeets p P \<and> local.dmeets a P"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
+  obtain A where A: "local.dmeets a A \<and> local.dmeets a' A"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
+  obtain P' where P': "local.dmeets p P' \<and> local.dmeets a' P'"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
 
+qed
 lemma dual_desargues: 
   fixes a and b and c and a' and b' and c' and p
-  assumes "desarguian_plane_data.perspective_from_point local.dmeets a b c a' b' c' p"
+  assumes "desarguian_plane_data.perspective_from_point local.dmeets p a b c a' b' c'"
   shows "desarguian_plane_data.perspective_from_line local.dmeets a b c a' b' c'"
+proof -
+  have conc1: "(projective_plane_data.concurrent meets a a' p)" try
+    by (smt assms concurrent_def desarguian_plane_data.intro desarguian_plane_data.perspective_from_point_def dmeets_def dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 projective_plane.intro projective_plane_data.collinear_def)
+
+qed
 end
 
 text\<open>\done \done\<close>
