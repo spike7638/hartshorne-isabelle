@@ -46,8 +46,18 @@ begin
       where "dmeets P l  \<longleftrightarrow> ( meets l P)" 
 (* Goal: to prove the theorem that "dmeets is a projective plane" *)
 
+ 
+
+lemma dmeets_p1aa_1:
+  assumes "P\<noteq>Q"
+  shows "\<exists>l. dmeets P l \<and> dmeets Q l"
+  unfolding dmeets_def
+  using assms p2 by blast
+
 lemma dmeets_p1aa: "P \<noteq> Q \<longrightarrow> (\<exists>l. dmeets P l \<and> dmeets Q l)"
-  using dmeets_def p2 by blast
+
+  using dmeets_p1aa_1 by auto
+
 (* first exercise: 
 1. what happens if you remove the "forall Q : at the start of that lemma? 
 2. rewrite that lemma as p1a, in fix-assume-show format
@@ -64,38 +74,63 @@ lemma dunique_lines:
   assumes "dmeets B l"
   assumes "dmeets P m"
   assumes "dmeets B m"
-  shows "l = m" 
-using assms dmeets_def p2 by blast
+
+  shows "l = m"
+  using assms dmeets_def p2 by blast
+
 
 lemma "dmeets_p1b": "P \<noteq> Q \<longrightarrow> (\<exists>!l. dmeets P l \<and> dmeets Q l)"
   using dmeets_p1aa dunique_lines by blast 
 
 lemma "dmeets_p2": "\<forall>l m. l \<noteq> m \<longrightarrow> (\<exists>!P. dmeets P l \<and> dmeets P m)"
-  sorry
+
+  by (simp add: dmeets_def p1)
+
 lemma "dmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear dmeets P Q R"
-  proof -
+proof - 
   obtain l m n where lmn: "l \<noteq> m \<and> l \<noteq> n \<and> m \<noteq> n \<and> \<not> projective_plane_data.collinear meets l m n"
-    using p3 by blast
-  obtain P where P: "dmeets P l \<and> dmeets P m"
-    using dmeets_p2 lmn by blast
-  obtain Q where Q: "dmeets Q m \<and> dmeets Q n"
-    using dmeets_p2 lmn by blast
-  obtain R where R: "dmeets R n \<and> dmeets R l"
-    using dmeets_p2 lmn by blast
-  have PQ: "P \<noteq> Q"
-    using P Q collinear_def dmeets_def lmn by blast
-  have PR: "P \<noteq> R"
-    using P R collinear_def dmeets_def lmn by blast
-  have RQ: "R \<noteq> Q"
-    using R Q collinear_def dmeets_def lmn by blast
-  thus ?thesis
-    by (smt P Q R dunique_lines lmn projective_plane_data.collinear_def)
+    using p3 by blast 
+  obtain P where P: "dmeets P l \<and> dmeets P m" using dmeets_p2 lmn by blast 
+  obtain Q where Q: "dmeets Q m \<and> dmeets Q n" using dmeets_p2 lmn by blast 
+  obtain R where R: "dmeets R n \<and> dmeets R l" using dmeets_p2 lmn by blast 
+  have PQ: "P \<noteq> Q" using P Q collinear_def dmeets_def lmn by blast 
+  have PR: "P \<noteq> R" using P R collinear_def dmeets_def lmn by blast 
+  have RQ: "R \<noteq> Q" using R Q collinear_def dmeets_def lmn by blast
+  thus ?thesis by (smt P Q R dunique_lines lmn projective_plane_data.collinear_def) qed 
+
+lemma "pmeets_p4": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> dmeets P l \<and> dmeets Q l \<and> dmeets R l"
+proof - 
+  obtain A where A:"\<not> meets l A" using dmeets_def dmeets_p3
+    by (smt projective_plane_data.collinear_def)
+  obtain m n k where mnk:"meets m A \<and> meets n A \<and> meets k A \<and> m \<noteq> n \<and> n \<noteq> k \<and> m \<noteq>k"
+    using p4 by blast
+  obtain P where P: "meets l P \<and> meets m P"
+    by (metis mnk p1)
+ obtain Q where Q: "meets l Q \<and> meets n Q"
+   by (metis mnk p1)
+ obtain R where R: "meets l R \<and> meets k R"
+   by (metis mnk p1)
+ have "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> meets l P \<and> meets l Q \<and> meets l R"
+   by (metis A P Q R mnk p2)
+  thus ?thesis unfolding dmeets_def by auto
 qed
 
-lemma "pmeets_p4": "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> dmeets P l \<and> dmeets Q l \<and> dmeets R l"
-  sorry
-theorem "projective_plane dmeets"
-  sorry
+text\<open>\daniel This allows us an easy way to prove the duals of theorems
+in a projective plane\<close>
+
+interpretation dual:projective_plane dmeets
+  unfolding projective_plane_def
+  using dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 by blast
+
+lemma linesOffPoints: (* dual of pointOffLines *)
+  fixes P::"'point" and Q::"'point"
+  assumes "P \<noteq> Q"
+  shows "\<exists>l::'line. (\<not> meets P l) \<and> (\<not> meets Q l)"
+  using dual.pointOffLines assms dmeets_def by blast
+
+text\<open>\done\<close>
+end
+
 
 end
 text\<open>\seiji \caleb\<close>
