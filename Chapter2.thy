@@ -45,6 +45,65 @@ $P, Q, R$ lie on a unique plane.
 
 \end{hartshorne}\<close>
 
+
+locale projective_three_space_data =
+  fixes meetsL :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
+  fixes meetsP :: "'point \<Rightarrow> 'plane \<Rightarrow> bool"
+
+begin
+    definition parallel:: "'line  \<Rightarrow> 'line \<Rightarrow> bool" (infix "||" 50)
+      where "l || m \<longleftrightarrow> (l = m \<or> \<not> (\<exists> P. meetsL P l  \<and> meetsL P m))"
+ 
+    definition collinear :: "'point  \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+      where "collinear A B C \<longleftrightarrow> (\<exists> l. meetsL A l \<and> meetsL B l \<and> meetsL C l)"
+
+    definition coplanar :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+      where "coplanar P Q R S \<longleftrightarrow> (\<exists>p. meetsP P p \<and> meetsP Q p \<and> meetsP R p \<and> meetsP S p)"
+
+    definition lies_on :: "'line \<Rightarrow> 'plane \<Rightarrow> bool"
+      where "lies_on l p \<longleftrightarrow> (\<forall>P. (meetsL P l \<longleftrightarrow> meetsP P p))"
+
+  end
+  value "projective_three_space_data"
+
+  locale projective_three_space =
+    projective_three_space_data meetsL meetsP
+    for meetsL :: "'point \<Rightarrow> 'line \<Rightarrow> bool" and meetsP :: "'point \<Rightarrow> 'plane \<Rightarrow> bool" +
+  assumes
+    s1: "P \<noteq> Q \<Longrightarrow> \<exists>!l. meetsL P l \<and> meetsL Q l" and
+    s2: "\<not>(collinear P Q R) \<Longrightarrow> \<exists>!p. meetsP P p \<and> meetsP Q p \<and> meetsP R p " and
+    s3: "\<forall>p l. \<exists>P. meetsL P l \<and> meetsP P p" and 
+    s4: "\<forall> p q. \<exists>l. lies_on l p \<and> lies_on l q" and
+    s5: "\<exists>P Q R S. \<not>(coplanar P Q R S) \<and> \<not>(collinear P Q R) \<and> \<not>(collinear Q R S) \<and> \<not>(collinear P Q S) \<and> \<not>(collinear P R S)" and
+    s6: "\<forall> l. \<exists> P Q R. P \<noteq> Q \<and> Q \<noteq> R \<and> P \<noteq> R \<and> meetsL P l \<and> meetsL Q l \<and> meetsL R l"
+begin
+
+lemma p7a:
+  fixes P and Q and s and l
+  assumes "P \<noteq> Q" and "meetsP P s" and "meetsP Q s" and "meetsL P l" and "meetsL Q l"
+  shows "lies_on l s"
+  sorry
+
+lemma p7b:
+  fixes p l
+  assumes "\<not>(lies_on l p)"
+  shows "\<exists>!P. meetsL P l \<and> meetsP P p"
+  sorry
+
+lemma p7c:
+  fixes p q
+  assumes "p \<noteq> q"
+  shows "\<exists>!l. lies_on l p \<and> lies_on l q"
+  sorry
+
+lemma p7d:
+  fixes P l
+  assumes "\<not>(meetsL P l)"
+  shows "\<exists>!p. meetsP P p \<and> lies_on l p"
+  sorry
+
+end
+
 text \<open>\begin{hartshorne}
 Example. By a process analogous to that of completing an affine plane to a projective plane, the 
 ordinary Euclidean three-space can be completed to a projective three-space, which we call
