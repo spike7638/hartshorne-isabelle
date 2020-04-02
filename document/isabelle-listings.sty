@@ -1,0 +1,207 @@
+% This package provides a proper Isabelle syntax highlighting based on the listings package
+
+% Note that this package may slow down your compilation as math symbols are escaped automatically
+
+% Author: Jens Christoph Buerger
+% Version: 0.1
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{isabelle-listings}[2017/04/21 Isabelle listing]
+
+\RequirePackage{listingsutf8}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amstext}
+\RequirePackage{wasysym}
+
+%% declarations
+% colors
+\definecolor{isabdblue}{rgb}{0.00, 0.40, 0.60}
+\definecolor{isablblue}{rgb}{0.00, 0.60, 0.99}
+\definecolor{isabgreen}{rgb}{0.00, 0.60, 0.40}
+\definecolor{isabred}{rgb}{0.99, 0.31, 0.31}
+\definecolor{isabpurple}{rgb}{0.59, 0.40, 0.99}
+\definecolor{isabcommentpurple}{rgb}{0.4, 0.0, 0.8}
+\definecolor{isabcomment}{rgb}{0.80, 0.00, 0.00}
+\definecolor{isabtextcomment}{rgb}{0.8, 0.4, 0.0}
+\definecolor{isabmblue}{rgb}{0.05, 0.41, 0.49}
+\definecolor{isabpink}{rgb}{0.99, 0.0, 0.8}
+
+% code styles
+\newcommand{\colorOnlyDisplay}[1]{\lst@ifdisplaystyle\color{#1}\fi} % color only in display mode
+\newcommand{\isabkeystyleA}{\color{isabdblue}\bfseries} % standard keywords
+\newcommand{\isabproofkeystyleA}{\color{isabdblue}\bfseries} % dark blue keywoards in proof
+\newcommand{\isabkeystyleB}{\color{isabgreen}\bfseries} % specification keywords
+\newcommand{\isabkeystyleC}{\color{isabred}\bfseries}   % apply keywords
+\newcommand{\isabkeystyleD}{\color{isabpurple}\bfseries} % proof method keywords
+\newcommand{\isabkeystyleE}{\color{isablblue}\bfseries}  % isar proof keywords
+\newcommand{\isabkeystyleF}{\color{isabmblue}\bfseries}  % if then keywords
+\newcommand{\isabcommentstyle}{\color{isabcomment}\ttfamily} % standard comments
+\newcommand{\isabtextcommentstyle}{\color{isabtextcomment}\ttfamily} % comments after text keywoard
+\newcommand{\isabbracecommentstyle}{\color{isabcommentpurple}\ttfamily}
+%\newcommand{\isabstringstyle}{\color{isabpink}\ttfamily}
+\newcommand{\isabstringstyle}{} %{\ttfamily}
+
+
+% language definition
+\lstdefinelanguage{Isabelle}{
+    %
+    % keyword mapping
+    %
+    % dark blue keywords
+    keywords={abbreviation,cpodef,pcpodef,datatype,default_sort,definition,domain,fun,instance,instantiation,lemma,next,lift,lift_definition,primrec,section,setup,setup_lifting,subsection,subsubsection,syntax,text,theorem,theory,thm,translations,typedef,type_synonym,fixrec,primrec,fun,function}, %dark blue
+    keywordstyle=\isabkeystyleA,
+    % dark blue proofs
+    keywords=[2]{by,have,hence,in,proof,qed,using}, % green
+    keywordstyle=[2]\isabproofkeystyleA,
+    %
+    %
+    % green keywords
+    keywords=[12]{and,assumes,begin,class,end,fixes,imports,infix,infixl,infixr,is,lazy,shows,where}, % green
+    keywordstyle=[12]\isabkeystyleB,
+    keywords=[13]{apply,done,sorry},  % apply red
+    keywordstyle=[13]\isabkeystyleC,
+    keywords=[14]{in,only,'a,'b,'c,'d,'e,'f,'m,'M,'i,'o},  % purple
+    keywordstyle=[14]\isabkeystyleD,
+    keywords=[15]{assume,case,fix,obtain,show,thus,of}, % light blue
+    keywordstyle=[15]\isabkeystyleE,
+    keywords=[16]{CONST,else,if,LEAST,let,THE,then}, % light blue
+    keywordstyle=[16]\isabkeystyleF,
+    sensitive=true,
+    alsoletter=:'*,
+    %
+    % definition of comment style
+    %
+    morecomment=[l]{--},
+    morecomment=[s]{(*}{*)},
+    commentstyle=\isabcommentstyle,
+    % 
+    % definition of string style
+    %
+    showstringspaces=false,
+    morestring=**[b][\isabstringstyle]{"}, % disabled as keywords can appear in definitions 
+    morestring=[s][\isabbracecommentstyle]{\{*}{*\}},
+    %morestring=[s][\isabtextcommentstyle]{\$\\langle\$}{\$\\rangle\$},
+    %
+    % literate definition 
+    %
+    literate=  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+    {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+    {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+    {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+    {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+    {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+    {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+    {ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+    {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+    {€}{{\EUR}}1 {£}{{\pounds}}1
+    % letters
+    {\\<alpha>}{{$\alpha$}}1
+    {\\<M>}{{$\mathcal{M}$}}1
+    % symbols
+    {\\<And>}{{$\bigwedge$}}1
+    {\\<and>}{{$\wedge$}}1
+    {\\<bar>}{{$\brokenvert$}}1
+    {\\<beta>}{{$\beta$}}1
+    {\\<bool>}{{$\mathbb{B}$}}1
+    {\\<bottom>}{{$\bot$}}1
+    {\\<bullet>}{{$\bullet$}}1
+    {\\<cdot>}{{$\cdot$}}1
+    {\\<cdots>}{{$\cdots$}}1
+    {\\<circ>}{{$\circ$}}1
+    {\\<close>}{{$\rangle$}}1
+    {\\<Coprod>}{{$\coprod$}}1
+    {\\<delta>}{{$\delta$}}1
+    {\\<div>}{{$\div$}}1
+    {\\<dots>}{{$\dots$}}1
+    {\\<down>}{{$\downarrow$}}1
+    {\\<downharpoonleft>}{{$\downharpoonleft$}}1
+    {\\<downharpoonright>}{{$\downharpoonright$}}1
+    {\\<epsilon>}{{$\epsilon$}}1
+    {\\<equiv>}{{$\equiv$}}1
+    {\\<exists>}{{$\exists$}}1
+    {\\<exists>}{{$\exists$}}1
+    {\\<forall>}{{$\forall$}}1
+    {\\<gamma>}{{$\gamma$}}1
+    {\\<ge>}{{$\geq$}}1
+    {\\<hh>}{{h}}1
+    {\\<h>}{{h}}1
+    {\\<in>}{{$\in$}}1
+    {\\<infinity>}{{$\infty$}}1
+    {\\<integral>}{{$\int$}}1
+    {\\<Inter>}{{$\bigcap$}}1
+    {\\<inter>}{{$\cap$}}1
+    {\\<inverse>}{{$^-$}}1
+    {\\<Lambda>}{{$\Lambda$}}1
+    {\\<lambda>}{{$\lambda$}}1
+    {\\<langle>}{{$\langle$}}1
+    {\\<lbrakk>}{{$[\![$}}1
+    {\\<le>}{{$\leq$}}1
+    {\\<leadsto>}{{$\leadsto$}}1
+    {\\<Leftarrow>}{{$\Rightarrow$}}1
+    {\\<leftarrow>}{{$\rightarrow$}}1
+    {\\<leftharpoondown>}{{$\leftharpoondown$}}1
+    {\\<leftharpoonup>}{{$\leftharpoonup$}}1
+    {\\<leftrightarrow>}{{$\leftrightarrow$}}1
+    {\\<Leftrightarrow>}{{$\Leftrightarrow$}}1
+    {\\<longleftarrow>}{{$\longleftarrow$}}1
+    {\\<longleftrightarrow>}{{$\longleftrightarrow$}}1
+    {\\<longrightarrow>}{{$\longrightarrow$}}1
+    {\\<Longrightarrow>}{{$\Longrightarrow$}}1
+    {\\<mapsto>}{{$\mapsto$}}2
+    {\\<mu>}{{$\mu$}}1
+    {\\<N>}{{$\mathcal{N}$}}1
+    {\\<not>}{{$\neg$}}1
+    {\\<noteq>}{{$\neq$}}1
+    {\\<notin>}{{$\notin$}}1
+    {\\<Odot>}{{$\bigodot$}}1
+    {\\<odot>}{{$\odot$}}1
+    {\\<Omega>}{{$\Omega$}}1
+    {\\<ominus>}{{$\ominus$}}1
+    {\\<open>}{{$\langle$}}1
+    {\\<Oplus>}{{$\bigoplus$}}1
+    {\\<oplus>}{{$\oplus$}}1
+    {\\<Or>}{{$\bigvee$}}1
+    {\\<or>}{{$\vee$}}1
+    {\\<Otimes>}{{$\bigotimes$}}1
+    {\\<otimes>}{{$\otimes$}}1
+    {\\<parallel>}{{$\parallel$}}1
+    {\\<plusminus>}{{$\pm$}}1
+    {\\<Prod>}{{$\prod$}}1
+    {\\<propto>}{{$\propto$}}1
+    {\\<rangle>}{{$\rangle$}}1
+    {\\<rbrakk>}{{$]\!]$}}1
+    {\\<rightarrow>}{{$\rightarrow$}}1
+    {\\<Rightarrow>}{{$\Rightarrow$}}1
+    {\\<rightharpoondown>}{{$\rightharpoondown$}}2
+    {\\<rightharpoonup>}{{$\rightharpoonup$}}2
+    {\\<rightleftharpoons>}{{$\rightleftharpoons$}}2
+    {\\<setminus>}{{$\setminus$}}1
+    {\\<sim>}{{$\sim$}}1
+    {\\<sqinter>}{{$\sqcap$}}1
+    {\\<sqsubset>}{{$\sqsubset$}}1
+    {\\<sqsubseteq>}{{$\sqsubseteq$}}1
+    {\\<sqsupset>}{{$\sqsupset$}}1
+    {\\<sqsupseteq>}{{$\sqsupseteq$}}1
+    {\\<Squnion>}{{$\bigsqcup$}}1
+    {\\<squnion>}{{$\sqcup$}}1
+    {\\<star>}{{$\star$}}1
+    {\\<subset>}{{$\subset$}}1
+    {\\<subseteq>}{{$\subseteq$}}1
+    {\\<Sum>}{{$\sum$}}1
+    {\\<supset>}{{$\supset$}}1
+    {\\<supseteq>}{{$\supseteq$}}1
+    {\\<surd>}{{$\surd$}}1
+    {\\<times>}{{$\times$}}1
+    {\\<Union>}{{$\bigcup$}}1
+    {\\<union>}{{$\cup$}}1
+    {\\<up>}{{$\uparrow$}}1
+    {\\<upharpoonleft>}{{$\upharpoonleft$}}1
+    {\\<upharpoonright>}{{$\upharpoonright$}}1
+    {\\<Uplus>}{{$\biguplus$}}1
+    {\\<uplus>}{{$\uplus$}}1
+    {\\<\^sup>}{{$^\wedge$}}1,
+}
