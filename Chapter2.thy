@@ -68,11 +68,10 @@ dpmeets (intersect (line_containing a b) (line_containing a' b'))
 (intersect (line_containing b c) (line_containing b' c')) 
 (intersect (line_containing a c) (line_containing a' c')))"
 
-(* definition desargues_property :: "bool" 
+definition desargues_property :: "bool"
   where "desargues_property \<equiv> \<forall> p a b c a' b' c' . 
 perspective_from_point p a b c a' b' c' \<longrightarrow> perspective_from_line a b c a' b' c'"
 
- *)
 end
 
 locale desarguian_proj_plane = 
@@ -107,7 +106,27 @@ $P, Q, R$ lie on a unique plane.
 \end{itemize}
 
 \end{hartshorne}\<close>
+locale projective_3_space_data  =
+  fixes Points :: "'a set" and Lines :: "'a set set" and Planes :: "'a set set"
+begin 
+  definition collinear :: "'a  \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+    where "collinear A B C \<longleftrightarrow> (\<exists> l. l \<in> Lines \<and> A \<in> l \<and> B \<in> l \<and> C \<in> l)"
 
+  definition coplanar :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+    where "coplanar A B C D \<longleftrightarrow> (\<exists> p. p \<in> Planes \<and> A \<in> p \<and> B \<in> p \<and> C \<in> p \<and> D \<in> p)"
+
+end
+
+locale projective_3_space = projective_3_space_data + 
+  assumes s1: "P \<in> Points \<and> Q \<in> Points \<and> P \<noteq> Q \<Longrightarrow> \<exists>!l . l \<in> Lines \<and> P \<in> l \<and> Q \<in> l" and
+  s2: "P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> \<not> collinear P Q R \<Longrightarrow> 
+\<exists>!p . p \<in> Planes \<and> P \<in> p \<and> Q \<in> p \<and> R \<in> p" and
+  s3: "l \<in> Lines \<and> p \<in> Planes \<Longrightarrow> (card (l \<inter> p)) \<ge> 1" and
+  s4: "p \<in> Planes \<and> q \<in> Planes \<Longrightarrow> \<exists>l. l \<in> Lines \<and> (p \<inter> l) = p \<and> (q \<inter> l) = q" and
+  s5: "\<exists> P Q R S . P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> S \<in> Points \<and> \<not> coplanar P Q R S \<and>
+      \<not> collinear P Q R \<and> \<not> collinear Q R S \<and> \<not> collinear P Q S \<and> \<not> collinaer P R S" and
+  s6: "l \<in> Lines \<Longrightarrow> \<exists> P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<in> l \<and> Q \<in> l \<and> R \<in> l"
+begin
 text \<open>\begin{hartshorne}
 Example. By a process analogous to that of completing an affine plane to a projective plane, the 
 ordinary Euclidean three-space can be completed to a projective three-space, which we call
@@ -161,7 +180,7 @@ lie in a line. But these points are projected for $X$ into $P,Q,R,$ on $\Sigma$,
 are collinear.
 \endproof
 \end{hartshorne}\<close>
-
+end
 
 text \<open>\begin{hartshorne}
 
