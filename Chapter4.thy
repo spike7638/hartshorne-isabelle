@@ -1,8 +1,9 @@
 theory Chapter4
-  imports Chapter1 Complex_Main
+  imports Chapter1 Chapter2 Complex_Main
 
 
 begin
+declare [[smt_timeout = 200]]
 text \<open>
 \spike
 Soon to be filled in with some Hartshorne text. 
@@ -54,6 +55,7 @@ lemma dmeets_p1aa_1:
   using assms p2 by blast
 
 lemma dmeets_p1aa: "P \<noteq> Q \<longrightarrow> (\<exists>l. dmeets P l \<and> dmeets Q l)"
+
   using dmeets_p1aa_1 by auto
 
 (* first exercise: 
@@ -72,13 +74,16 @@ lemma dunique_lines:
   assumes "dmeets B l"
   assumes "dmeets P m"
   assumes "dmeets B m"
+
   shows "l = m"
   using assms dmeets_def p2 by blast
+
 
 lemma "dmeets_p1b": "P \<noteq> Q \<longrightarrow> (\<exists>!l. dmeets P l \<and> dmeets Q l)"
   using dmeets_p1aa dunique_lines by blast 
 
 lemma "dmeets_p2": "\<forall>l m. l \<noteq> m \<longrightarrow> (\<exists>!P. dmeets P l \<and> dmeets P m)"
+
   by (simp add: dmeets_def p1)
 
 lemma "dmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear dmeets P Q R"
@@ -132,4 +137,35 @@ text\<open>\done\<close>
 end
 
 
+end
+text\<open>\seiji \caleb\<close>
+locale desarguian_projective_plane_plus = 
+    projective_plane_plus meets +
+    desarguian_proj_plane meets 
+    for meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
+begin
+lemma perspective_implies_concurrent:
+  fixes a and b and c and a' and b' and c' and p
+  assumes "desarguian_plane_data.perspective_from_point local.dmeets p a b c a' b' c'"
+  shows "(projective_plane_data.concurrent meets a a' p)"
+proof -
+  obtain P where P: "local.dmeets p P \<and> local.dmeets a P"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
+  obtain A where A: "local.dmeets a A \<and> local.dmeets a' A"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
+  obtain P' where P': "local.dmeets p P' \<and> local.dmeets a' P'"
+    by (metis (full_types) dmeets_def dmeets_p1aa p4)
 
+qed
+lemma dual_desargues: 
+  fixes a and b and c and a' and b' and c' and p
+  assumes "desarguian_plane_data.perspective_from_point local.dmeets p a b c a' b' c'"
+  shows "desarguian_plane_data.perspective_from_line local.dmeets a b c a' b' c'"
+proof -
+  have conc1: "(projective_plane_data.concurrent meets a a' p)" try
+    by (smt assms concurrent_def desarguian_plane_data.intro desarguian_plane_data.perspective_from_point_def dmeets_def dmeets_p1b dmeets_p2 dmeets_p3 local.pmeets_p4 projective_plane.intro projective_plane_data.collinear_def)
+
+qed
+end
+
+text\<open>\done \done\<close>
