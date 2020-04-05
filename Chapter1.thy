@@ -1089,27 +1089,6 @@ begin
 
 (* right here is where many small theorems about projective planes should go, theorems like "any
 two lines in a projective plane have the same cardinality", etc. -- Spike *)
-lemma other_point:
-  fixes m
-  fixes k
-  assumes "m \<noteq> k"
-  shows "\<exists> T. (\<not>(meets T m) \<and> \<not>(meets T k))"
-proof -
-  obtain I where I: "(meets I m) \<and> (meets I k)"
-    using assms p2 by blast
-  obtain M1 K1 where mk_pt: "meets M1 m \<and> M1 \<noteq> I \<and> meets K1 k \<and> K1 \<noteq> I"
-    using assms p4 I by metis
-  have "M1 \<noteq> K1"
-    using I assms mk_pt p2 by auto
-  obtain mk where mk: "meets M1 mk \<and> meets K1 mk"
-    by (metis \<open>M1 \<noteq> K1\<close> projective_plane_axioms projective_plane_def)
-  obtain T where T: "meets T mk \<and> T \<noteq> M1 \<and> T \<noteq> K1" 
-    using assms mk p4 by blast
-  have "\<not>(meets T m) \<and> \<not>(meets T k)"
-    by (metis (no_types, lifting) I T assms mk mk_pt projective_plane_axioms projective_plane_def)
-  thus ?thesis
-    by auto
-qed
 
 lemma corresponding:
   fixes m 
@@ -1128,6 +1107,13 @@ lemma corresponding:
   thus ?thesis try
   qed *)
     sorry
+
+text  \<open> 
+\spike
+Here we have a few small theorems about projective planes, some from the exercises in Hartshorne,
+others that just arose during class. 
+ \done
+\<close>
 
 lemma pointOffLines:
   fixes l and m

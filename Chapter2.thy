@@ -125,7 +125,9 @@ locale projective_3_space = projective_3_space_data +
   s4: "p \<in> Planes \<and> q \<in> Planes \<Longrightarrow> \<exists>l. l \<in> Lines \<and> (p \<inter> l) = p \<and> (q \<inter> l) = q" and
   s5: "\<exists> P Q R S . P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> S \<in> Points \<and> \<not> coplanar P Q R S \<and>
       \<not> collinear P Q R \<and> \<not> collinear Q R S \<and> \<not> collinear P Q S \<and> \<not> collinaer P R S" and
-  s6: "l \<in> Lines \<Longrightarrow> \<exists> P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<in> l \<and> Q \<in> l \<and> R \<in> l"
+  s6: "l \<in> Lines \<Longrightarrow> \<exists> P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<in> l \<and> Q \<in> l \<and> R \<in> l" and
+  line_inc: "l \<in> Lines \<Longrightarrow> l \<subseteq> Points" and
+  plane_inc: "p \<in> Planes \<Longrightarrow> p \<subseteq> Points"
 begin
 text \<open>\begin{hartshorne}
 Example. By a process analogous to that of completing an affine plane to a projective plane, the 
@@ -147,6 +149,7 @@ Now the remarkable fact is that, although P5 is not a consequence of P1–-P4 in
 plane, it is a consequence of the seemingly equally simple axioms for projective three-space.
 
 \end{hartshorne}\<close>
+theorem "p \<in> Planes \<Longrightarrow> projective_plane p"
 
 text \<open>\begin{hartshorne}
 
