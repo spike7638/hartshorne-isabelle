@@ -1,8 +1,10 @@
-\documentclass[11pt,notitlepage]{report}
+\documentclass[11pt,notitlepage,openany]{book}
 \usepackage{isabelle,isabellesym,eufrak}
 \usepackage[english]{babel}
 \usepackage[svgnames]{xcolor}
 \usepackage{amsmath, amsthm, amssymb}
+\usepackage{listingsutf8, amstext, wasysym}
+\usepackage{isabelle-listings}
 
 % For graphics files
 %\usepackage[pdftex]{graphicx}
@@ -22,25 +24,35 @@ topline=false, bottomline=false, rightline=false}
 
 \begin{document}
 
-\title{Foo}
-\author{John}
+\title{Foundations of Projective Geometry: A formalization}
+\author{John Hughes and the students of Brown CS1951D, Spring 2020}
 \maketitle
 
-\begin{abstract}
-Starting from Robin Hartshorne's book, we prove things.
-\end{abstract}
+%\begin{abstract}
+%Starting from Robin Hartshorne's book, we prove things.
+%\end{abstract}
 
 % \tableofcontents
 
 \chapter*{Introduction}
-A brief introduction goes here.
+This text is a formalization of Robin Hartshorne's \emph{Foundations of Projective Geometry}
+using the Isabelle proof assistant, primarily relying on Isar. Quotations 
+from Hartshorne appear indented, with a blue line to the left. Additional material 
+written by either the professor (John (Spike) Hughes) or various students are surrounded by colored 
+markers, like this:
+\spike
+This is something written by Spike
+\done
+with the black marker indicating the end of the section written by Spike (except that in this case, 
+it's part of a larger section Spike wrote). 
+
+Within Isabelle, numbered propositions or theorems from Hartshorne are given names that tie back 
+to the text, so Proposition 1.1 in the text is called \texttt{Prop1P1}, with ``P'' replacing the period, 
+for instance. 
 
 Students should insert things into the document using
 macros associated with their name (in lowercase) to produce a marker indicating the start of their contribution, and the "done" macro to indicate when their contribution is complete. Here are examples of the macro results:
 
-A brief introduction goes here.
-
-Sections associated with each user should be introduced with a macro indicating that user:
 \spike Spike
 \david David
 \ken Ken
