@@ -2,6 +2,7 @@ theory Chapter2
   imports Chapter1
 
 begin
+declare [[smt_timeout = 200]]
 
 section \<open>Desargues' Theorem\<close>
 text \<open>\begin{hartshorne}
@@ -46,60 +47,89 @@ $P, Q, R$ lie on a unique plane.
 \end{hartshorne}\<close>
 
 
-locale projective_three_space_data =
-  fixes meetsL :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
-  fixes meetsP :: "'point \<Rightarrow> 'plane \<Rightarrow> bool"
+locale projective_3_space_data  =
+  fixes Points :: "'a set" and Lines :: "'a set set" and Planes :: "'a set set"
+begin 
+  definition collinear :: "'a  \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+    where "collinear A B C \<longleftrightarrow> (\<exists> l. l \<in> Lines \<and> A \<in> l \<and> B \<in> l \<and> C \<in> l)"
+
+  definition coplanar :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+    where "coplanar A B C D \<longleftrightarrow> (\<exists> p. p \<in> Planes \<and> A \<in> p \<and> B \<in> p \<and> C \<in> p \<and> D \<in> p)"
+
+end
+
+locale projective_3_space = projective_3_space_data + 
+  assumes s1: "P \<in> Points \<and> Q \<in> Points \<and> P \<noteq> Q \<Longrightarrow> \<exists>!l . l \<in> Lines \<and> P \<in> l \<and> Q \<in> l" and
+  s2: "P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> \<not> collinear P Q R \<Longrightarrow> 
+\<exists>!p \<in> Planes. P \<in> p \<and> Q \<in> p \<and> R \<in> p" and
+  s3: "l \<in> Lines \<and> p \<in> Planes \<Longrightarrow> (\<exists> P. P \<in> (l \<inter> p))" and
+  s4: "p \<in> Planes \<and> q \<in> Planes \<Longrightarrow> \<exists>l \<in> Lines. l \<subseteq> p \<and> l \<subseteq> q" and
+  s5: "\<exists> P Q R S . P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> S \<in> Points \<and> \<not> coplanar P Q R S \<and>
+      \<not> collinear P Q R \<and> \<not> collinear Q R S \<and> \<not> collinear P Q S \<and> \<not> collinear P R S" and
+  s6: "l \<in> Lines \<Longrightarrow> \<exists> P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<in> l \<and> Q \<in> l \<and> R \<in> l \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R" and
+  defLine: "l \<in> Lines \<Longrightarrow> l \<subseteq> Points" and
+  defPlane: "p \<in> Planes \<Longrightarrow> p \<subseteq> Points"
 
 begin
-    definition parallel:: "'line  \<Rightarrow> 'line \<Rightarrow> bool" (infix "||" 50)
-      where "l || m \<longleftrightarrow> (l = m \<or> \<not> (\<exists> P. meetsL P l  \<and> meetsL P m))"
- 
-    definition collinear :: "'point  \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
-      where "collinear A B C \<longleftrightarrow> (\<exists> l. meetsL A l \<and> meetsL B l \<and> meetsL C l)"
 
-    definition coplanar :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
-      where "coplanar P Q R S \<longleftrightarrow> (\<exists>p. meetsP P p \<and> meetsP Q p \<and> meetsP R p \<and> meetsP S p)"
+text \<open>\begin{david}
+With the definition of a projective three-space, we can prove some results given as Problems 7 and 8.
+Problem 7: 
 
-    definition lies_on :: "'line \<Rightarrow> 'plane \<Rightarrow> bool"
-      where "lies_on l p \<longleftrightarrow> (\<forall>P. (meetsL P l \<longleftrightarrow> meetsP P p))"
 
-  end
-  value "projective_three_space_data"
+\end{david}\<close>
 
-  locale projective_three_space =
-    projective_three_space_data meetsL meetsP
-    for meetsL :: "'point \<Rightarrow> 'line \<Rightarrow> bool" and meetsP :: "'point \<Rightarrow> 'plane \<Rightarrow> bool" +
-  assumes
-    s1: "P \<noteq> Q \<Longrightarrow> \<exists>!l. meetsL P l \<and> meetsL Q l" and
-    s2: "\<not>(collinear P Q R) \<Longrightarrow> \<exists>!p. meetsP P p \<and> meetsP Q p \<and> meetsP R p " and
-    s3: "\<forall>p l. \<exists>P. meetsL P l \<and> meetsP P p" and 
-    s4: "\<forall> p q. \<exists>l. lies_on l p \<and> lies_on l q" and
-    s5: "\<exists>P Q R S. \<not>(coplanar P Q R S) \<and> \<not>(collinear P Q R) \<and> \<not>(collinear Q R S) \<and> \<not>(collinear P Q S) \<and> \<not>(collinear P R S)" and
-    s6: "\<forall> l. \<exists> P Q R. P \<noteq> Q \<and> Q \<noteq> R \<and> P \<noteq> R \<and> meetsL P l \<and> meetsL Q l \<and> meetsL R l"
-begin
-
-lemma p7a:
-  fixes P and Q and s and l
-  assumes "P \<noteq> Q" and "meetsP P s" and "meetsP Q s" and "meetsL P l" and "meetsL Q l"
-  shows "lies_on l s"
+lemma prob7a:
+  fixes P :: "'a" and Q :: "'a" and s :: "'a set" and l :: "'a set"
+  assumes "P \<in> Points" and "Q \<in> Points" and "s \<in> Planes" and "l \<in> Lines" and "P \<in> s" and "Q \<in> s" and "P \<in> l" and "Q \<in> l"
+  shows "l \<subseteq> s"
   sorry
 
-lemma p7b:
-  fixes p l
-  assumes "\<not>(lies_on l p)"
-  shows "\<exists>!P. meetsL P l \<and> meetsP P p"
-  sorry
 
-lemma p7c:
-  fixes p q
-  assumes "p \<noteq> q"
-  shows "\<exists>!l. lies_on l p \<and> lies_on l q"
-  sorry
+lemma prob7b:
+  fixes p :: "'a set" and l :: "'a set" 
+  assumes "\<not>(l \<subseteq> p)" and "p \<in> Planes" and "l \<in> Lines"
+  shows "\<exists>!P. P \<in> (l \<inter> p)"
+proof -
+  have atLeastOne: "\<exists> P. P \<in> (l \<inter> p)"
+    using assms(2) assms(3) s3 by auto
+  then obtain P where P : "P \<in> (l \<inter> p)" by auto
+  from this have Ponl: "P \<in> l" by simp
+  from this have PPoint: "P \<in> Points" using defLine assms(3) by auto
+  have Ponp: "P \<in> p" using P by simp
+  have "\<not>(\<exists> Q. Q \<noteq> P \<and> Q \<in> (l \<inter> p))"
+  proof(rule ccontr)
+    assume "\<not>\<not>(\<exists> Q. Q \<noteq> P \<and> Q \<in> (l \<inter> p))"
+    then show False
+    proof -
+      have neg: "(\<exists> Q. Q \<noteq> P \<and> Q \<in> (l \<inter> p))" 
+        using \<open>\<not> (\<nexists>Q. Q \<noteq> P \<and> Q \<in> l \<inter> p)\<close> by blast
+      then obtain Q where Q : "Q \<in> (l \<inter> p) \<and> Q \<in> (l \<inter> p)"
+        by auto
+      from this have Qonl: "Q \<in> l" by simp
+      have Qonp: "Q \<in> p" using Q by simp
+      from this have QPoint: "Q \<in> Points" using assms(2) defPlane by auto
+      have "(l \<subseteq> p)" using prob7a assms(2) assms(3) PPoint QPoint Ponl Ponp Qonl Qonp
+        by auto
+      thus ?thesis
+        using assms(1) by auto 
+    qed
+  qed
+  thus ?thesis
+    using atLeastOne by auto
+qed
 
-lemma p7d:
-  fixes P l
-  assumes "\<not>(meetsL P l)"
-  shows "\<exists>!p. meetsP P p \<and> lies_on l p"
+lemma prob7c:
+  fixes p :: "'a set" and q :: "'a set"
+  assumes "p \<noteq> q" and "p \<in> Planes" and "q \<in> Planes"
+  shows "(p \<inter> q) \<in> Lines"
+  sorry
+  
+
+lemma prob7d:
+  fixes P :: "'a" and l :: "'a set"
+  assumes "\<not>(P\<in>l)" and "P \<in> Points" and "l \<in> Lines"
+  shows "\<exists>! p \<in> Planes. P \<in> p \<and> l \<subset> p"
   sorry
 
 end
