@@ -23,11 +23,12 @@ Big thanks to Anthony Bordg for inspiring this section's format and enlightening
 symbols.\seiji \caleb
 \<close>
 locale desarguian_plane_data = 
- projective_plane dpmeets for
-  dpmeets :: "'point \<Rightarrow> 'line \<Rightarrow> bool" 
+ projective_plane Points Lines dpmeets for
+  Points :: "'point set" and Lines :: "'line set" and dpmeets :: "'point \<Rightarrow> 'line \<Rightarrow> bool" 
 begin
-definition triangle :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool" 
-  where "triangle a b c \<longleftrightarrow> a \<noteq> b \<and> b \<noteq> c \<and> a \<noteq> c \<and> \<not> projective_plane_data.collinear dpmeets a b c" 
+fun triangle :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool" 
+  where "triangle a b c \<longleftrightarrow> (if a \<in> Points \<and> b \<in> Points \<and> c \<in> Points then a \<noteq> b \<and> b \<noteq> c \<and> a \<noteq> c \<and> \<not> projective_plane_data.collinear Points Lines dpmeets a b c
+ else False)" 
 
 definition distinct7 :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
   where "distinct7 a b c d e f g \<longleftrightarrow> (a \<noteq> b) \<and> (a \<noteq> c) \<and> (a \<noteq> d) \<and> (a \<noteq> e) \<and> (a \<noteq>
@@ -45,40 +46,42 @@ f) \<and> (b \<noteq> c) \<and> (b \<noteq> d) \<and> (b \<noteq> e) \<and> (b \
 (d \<noteq> e) \<and> (d \<noteq> f) \<and>
 (e \<noteq> f)"
 
+definition in7 :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool" 
+  where "in7 a b c d e f g \<longleftrightarrow> a \<in> Points \<and> b \<in> Points \<and> c \<in> Points \<and> d \<in> Points \<and> e \<in> Points \<and>
+f \<in> Points \<and> g \<in> Points"
+
 definition perspective_from_point :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 
 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
-  where "perspective_from_point p a b c a' b' c' \<longleftrightarrow> distinct7 p a b c a' b' c' 
-\<and> triangle a b c \<and> triangle a' b' c' \<and> projective_plane_data.collinear dpmeets a a' p \<and>
- projective_plane_data.collinear dpmeets b b' p \<and> projective_plane_data.collinear dpmeets c c' p"
+  where "perspective_from_point p a b c a' b' c' \<longleftrightarrow> in7 p a b c a' b' c' \<and> distinct7 p a b c a' b' c' 
+\<and> triangle a b c \<and> triangle a' b' c' \<and> projective_plane_data.collinear Points Lines dpmeets a a' p \<and>
+ projective_plane_data.collinear Points Lines dpmeets b b' p \<and> projective_plane_data.collinear Points Lines dpmeets c c' p"
 
 definition line_containing :: "'point \<Rightarrow> 'point \<Rightarrow> 'line" 
-  where "line_containing a b \<equiv> @L. dpmeets a L \<and> dpmeets b L" 
+  where "line_containing a b \<equiv> @L. L \<in> Lines \<and> dpmeets a L \<and> dpmeets b L" 
 
 definition intersect :: "'line \<Rightarrow> 'line \<Rightarrow> 'point"
-  where "intersect A B \<equiv> @p. dpmeets p A \<and> dpmeets p B"
+  where "intersect A B \<equiv> @p. p \<in> Points \<and> dpmeets p A \<and> dpmeets p B"
 
 definition perspective_from_line :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> 
 'point \<Rightarrow> 'point \<Rightarrow> bool" 
-  where "perspective_from_line a b c a' b' c' \<longleftrightarrow> distinct6 a b c a' b' c' \<and> triangle a b c \<and>
+  where "perspective_from_line a b c a' b' c' \<longleftrightarrow> {a,b,c,a',b',c'} \<subseteq> Points \<and> distinct6 a b c a' b' c' \<and> triangle a b c \<and>
 triangle a' b' c' \<and> 
 (line_containing a b) \<noteq> (line_containing a' b') \<and> 
 (line_containing b c) \<noteq> (line_containing b' c') \<and> 
 (line_containing a c) \<noteq> (line_containing a' c') \<and> (projective_plane_data.collinear 
-dpmeets (intersect (line_containing a b) (line_containing a' b')) 
+Points Lines dpmeets (intersect (line_containing a b) (line_containing a' b')) 
 (intersect (line_containing b c) (line_containing b' c')) 
 (intersect (line_containing a c) (line_containing a' c')))"
 
 definition desargues_property :: "bool"
-  where "desargues_property \<equiv> \<forall> p a b c a' b' c' . 
+  where "desargues_property \<equiv> \<forall> p a b c a' b' c' . {p, a, b, c, a', b', c'} \<subseteq> Points \<and> 
 perspective_from_point p a b c a' b' c' \<longrightarrow> perspective_from_line a b c a' b' c'"
 
 end
 
 locale desarguian_proj_plane = 
  desarguian_plane_data + 
-assumes
-  p5: "\<forall> p a b c a' b' c' . 
-perspective_from_point p a b c a' b' c' \<longrightarrow> perspective_from_line a b c a' b' c'"
+assumes desargues_property
 begin
 
 end
@@ -107,13 +110,13 @@ $P, Q, R$ lie on a unique plane.
 
 \end{hartshorne}\<close>
 locale projective_3_space_data  =
-  fixes Points :: "'a set" and Lines :: "'a set set" and Planes :: "'a set set"
+  fixes Points :: "'p set" and Lines :: "'p set set" and Planes :: "'p set set"
 begin 
-  definition collinear :: "'a  \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-    where "collinear A B C \<longleftrightarrow> (\<exists> l. l \<in> Lines \<and> A \<in> l \<and> B \<in> l \<and> C \<in> l)"
+  fun collinear :: "'p  \<Rightarrow> 'p  \<Rightarrow> 'p  \<Rightarrow> bool"
+    where "collinear A B C \<longleftrightarrow> (if {A, B, C} \<subseteq> Points then (\<exists> l. l \<in> Lines \<and> A \<in> l \<and> B \<in> l \<and> C \<in> l) else False)"
 
-  definition coplanar :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
-    where "coplanar A B C D \<longleftrightarrow> (\<exists> p. p \<in> Planes \<and> A \<in> p \<and> B \<in> p \<and> C \<in> p \<and> D \<in> p)"
+  fun coplanar :: "'p \<Rightarrow> 'p \<Rightarrow> 'p \<Rightarrow> 'p \<Rightarrow> bool" 
+    where "coplanar A B C D \<longleftrightarrow> (if {A, B, C, D} \<subseteq> Points then (\<exists> p. p \<in> Planes \<and> A \<in> p \<and> B \<in> p \<and> C \<in> p \<and> D \<in> p) else False)"
 
 end
 
@@ -124,7 +127,7 @@ locale projective_3_space = projective_3_space_data +
   s3: "l \<in> Lines \<and> p \<in> Planes \<Longrightarrow> (card (l \<inter> p)) \<ge> 1" and
   s4: "p \<in> Planes \<and> q \<in> Planes \<Longrightarrow> \<exists>l. l \<in> Lines \<and> (p \<inter> l) = p \<and> (q \<inter> l) = q" and
   s5: "\<exists> P Q R S . P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> S \<in> Points \<and> \<not> coplanar P Q R S \<and>
-      \<not> collinear P Q R \<and> \<not> collinear Q R S \<and> \<not> collinear P Q S \<and> \<not> collinaer P R S" and
+      \<not> collinear P Q R \<and> \<not> collinear Q R S \<and> \<not> collinear P Q S \<and> \<not> collinear P R S" and
   s6: "l \<in> Lines \<Longrightarrow> \<exists> P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<in> l \<and> Q \<in> l \<and> R \<in> l" and
   line_inc: "l \<in> Lines \<Longrightarrow> l \<subseteq> Points" and
   plane_inc: "p \<in> Planes \<Longrightarrow> p \<subseteq> Points"
@@ -149,7 +152,8 @@ Now the remarkable fact is that, although P5 is not a consequence of P1–-P4 in
 plane, it is a consequence of the seemingly equally simple axioms for projective three-space.
 
 \end{hartshorne}\<close>
-theorem "p \<in> Planes \<Longrightarrow> projective_plane p"
+theorem every_plane_proj: "p \<in> Planes \<Longrightarrow> projective_plane p {l. l \<subset> P \<and> l \<in> Lines} (\<in>)"
+  sorry            
 
 text \<open>\begin{hartshorne}
 

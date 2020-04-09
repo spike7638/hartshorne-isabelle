@@ -70,27 +70,26 @@ theory Chapter1
   imports Complex_Main
 
 begin
-declare [[smt_timeout = 200]]
+declare [[smt_timeout = 240]]
 
 locale affine_plane_data =
-    fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
-
+  fixes Points :: "'p set" and Lines :: "'l set" and meets :: "'p \<Rightarrow> 'l \<Rightarrow> bool"
 begin
-    definition parallel:: "'line  \<Rightarrow> 'line \<Rightarrow> bool" (infix "||" 50)
-      where "l || m \<longleftrightarrow> (l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))"
- 
-    definition collinear :: "'point  \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
-      where "collinear A B C \<longleftrightarrow> (\<exists> l. meets A l \<and> meets B l \<and> meets C l)"
-  end
-  value "affine_plane_data"
+  fun parallel :: "'l \<Rightarrow> 'l \<Rightarrow> bool" (infix "||" 50) where
+  "l || m = (if (l \<in> Lines \<and> m \<in> Lines) 
+  then l = m \<or> \<not> (\<exists> P. P \<in> Points \<and> meets P l \<and> meets P m) else l = m)"
+
+fun collinear :: "'p \<Rightarrow> 'p \<Rightarrow> 'p \<Rightarrow> bool"
+    where "collinear A B C = (if A \<in> Points \<and> B \<in> Points \<and> C \<in> Points 
+  then (\<exists> l. l \<in> Lines \<and> meets A l \<and> meets B l \<and> meets C l) else False)"
+end
 
   locale affine_plane =
-    affine_plane_data meets
-  for meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool" +
+    affine_plane_data  +
   assumes
-    a1: "P \<noteq> Q \<Longrightarrow> \<exists>!l. meets P l \<and> meets Q l" and
-    a2: "\<not> meets P l \<Longrightarrow> \<exists>!m. l || m \<and> meets P m" and
-    a3: "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+    a1: "\<lbrakk>P \<noteq> Q; P \<in> Points; Q \<in> Points\<rbrakk> \<Longrightarrow> \<exists>!l. l \<in> Lines \<and> meets P l \<and> meets Q l" and
+    a2: "\<lbrakk>\<not> meets P l; P \<in> Points; l \<in> Lines\<rbrakk> \<Longrightarrow> \<exists>!m. m \<in> Lines \<and> l || m \<and> meets P m" and
+    a3: "\<exists>P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
 
 begin
 
@@ -139,8 +138,8 @@ We now move on to prove some of the elementary claims in the text above, albeit 
 order. 
 \done\<close>
 
-  lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
-    using parallel_def by auto
+lemma symmetric_parallel: "l || m \<Longrightarrow> m || l"
+  by (metis parallel.simps)
 
 text \<open>
 \spike
@@ -164,8 +163,8 @@ proof -
 \done\<close>
 
 
-  lemma reflexive_parallel: "l || l"
-    using parallel_def by blast
+lemma reflexive_parallel: "l || l"
+  by simp    
 (*
   proof - 
     have "l = l" 
@@ -174,8 +173,54 @@ proof -
       using parallel_def by auto
   qed
 *)
-  lemma transitive_parallel: "\<lbrakk>l || m ;  m || n\<rbrakk> \<Longrightarrow> l || n"
-    by (metis a2 parallel_def)
+
+lemma transitive_parallel: "\<lbrakk>l || m; m || n\<rbrakk> \<Longrightarrow> l || n" 
+proof -
+  fix l and m and n 
+  assume lm: "l || m"
+  assume mn: "m || n"
+  show "l || n"
+  proof -
+    have or1: "(l = m \<or> \<not> (\<exists> P. P \<in> Points \<and> meets P l \<and> meets P m))" 
+      by (meson lm parallel.elims(2))
+    have or2: "(m = n \<or> \<not> (\<exists> P. P \<in> Points \<and> meets P m \<and> meets P n))"
+      by (meson mn parallel.elims(2))
+    show "l || n"
+    proof (cases "l = m")
+      case True
+      show "l || n"
+    
+      proof (cases "m = n")
+        case True
+        then show ?thesis 
+          using lm by blast
+      next
+        case False
+        have not_exists1: "\<not> (\<exists> P. P \<in> Points \<and> meets P m \<and> meets P n)"
+          using False or2 by blast
+        then show ?thesis 
+          using True mn by blast
+      qed
+    next
+      case False
+      have not_exists2: "\<not> (\<exists> P. P \<in> Points \<and> meets P l \<and> meets P m)" 
+        using False or1 by blast
+      show "l || n"
+      proof (cases "m = n")
+        case True
+        then show ?thesis 
+          using lm by blast
+      next
+        case False
+        have not_exists3: "\<not> (\<exists> P. P \<in> Points \<and> meets P m \<and> meets P n)"
+          using False or2 by blast
+        then show ?thesis
+          by (smt a2 lm mn parallel.simps) 
+      qed
+    qed
+    qed
+  qed
+   
 (*
   proof - 
     fix l :: "'line" and m :: "'line" and n :: "'line"
@@ -199,9 +244,9 @@ proof (rule equivpI)
   show "reflp parallel"
     by (simp add: reflexive_parallel reflpI)
   show "symp parallel"
-    by (simp add: symmetric_parallel sympI)
+    using symmetric_parallel sympI by blast
   show "transp parallel"
-    by (simp add: transitive_parallel transpI)
+    using transitive_parallel transpI by blast
 qed
   text \<open>\done\<close>
 end
@@ -213,13 +258,14 @@ theorem (in affine_plane_data) parallel_alt:
   fixes l
   fixes m
   assumes "l \<noteq> m"
+  assumes "l \<in> Lines \<and> m \<in> Lines"
   assumes "\<forall>P. (\<not>meets P l) \<or> (\<not> meets P m)"
   shows "l || m"
 proof -
   have "\<not> (\<exists> P. meets P l \<and> meets P m)"
+    using assms(3) by blast
+  thus "l || m"
     using assms(2) by auto
-  thus "l || m" 
-      using assms(2) parallel_def by auto
 qed
 
 text  \<open>\begin{hartshorne}
@@ -253,7 +299,8 @@ This is the smallest affine plane. [NB: We'll return to this final claim present
 \<close>
 
   (* Two lines meet in at most one point *)
-  lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m\<rbrakk> \<Longrightarrow> P = Q"
+lemma (in affine_plane) prop1P2: "\<lbrakk>l \<noteq> m; meets P l; meets P m; meets Q l; meets Q m; 
+l \<in> Lines; m \<in> Lines; P \<in> Points; Q \<in> Points\<rbrakk> \<Longrightarrow> P = Q"
     using a1 by auto
 
 
@@ -262,39 +309,52 @@ We can also prove some basic theorems about affine planes not in Hartshorne. The
 point lies on some line; the second is that every line contains at least one point. \done\<close>
   (* Examples of some easy theorems about affine planes, not mentioned in Hartshorne *)
   (* Every point lies on some line *)
-  lemma (in affine_plane) containing_line: "\<forall>S. \<exists>l. meets S l"
-    using a2 by blast
+  lemma (in affine_plane) containing_line: "\<forall>S \<in> Points. \<exists>l. l \<in> Lines \<and> meets S l"
+    by (metis a1 a3)
 
   (* Every line contains at least one point *)
-  lemma (in affine_plane) contained_point: "\<forall>l. \<exists>S. meets S l"
-    using a1 a2 a3 parallel_def collinear_def by metis
+  lemma (in affine_plane) contained_point: "\<forall>l \<in> Lines. \<exists>S. S \<in> Points \<and> meets S l"
+    using a1 a2 a3 parallel.simps collinear.elims by metis
 
 
   text \<open>\daniel We enlarge on these to show that every line contains at least \emph{two} points;
 we could also show (but don't) that every point lies on at least two lines.\<close>
 
-lemma (in affine_plane) contained_points: "\<forall> l.  \<exists> S T.  S\<noteq>T \<and> meets S l \<and> meets T l"
-  proof -
-    fix l::"'line"
-    obtain S where S:"meets S l" using contained_point
-      by auto
-    obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
-      using a3 by blast
-    obtain A B where AB: "A \<noteq> B \<and> A \<noteq> S \<and> B \<noteq> S \<and> \<not> collinear A B S"
-      by (smt PQR collinear_def prop1P2)
-    obtain C where C: "(C=A \<or> C=B) \<and> \<not> meets C l"
-      using AB S collinear_def by blast
-    obtain m where m: "meets C m \<and> meets S m"
-      by (metis AB a1)
-    obtain D where D: "(D = A \<or> D = B) \<and> D \<noteq> C"
-      using AB by blast
-    thus ?thesis
-      by (smt AB C D S a2 affine_plane_data.collinear_def m parallel_def symmetric_parallel transitive_parallel)
+lemma (in affine_plane) contained_points:
+  fixes l
+  assumes lline: "l \<in> Lines"
+  shows "\<exists> S T. S \<in> Points \<and> T \<in> Points \<and>  S\<noteq>T \<and> meets S l \<and> meets T l"
+proof (rule ccontr)
+    assume a: "\<not>(\<exists> S T. S \<in> Points \<and> T \<in> Points \<and>  S\<noteq>T \<and> meets S l \<and> meets T l)"
+    obtain S where S: "S \<in> Points \<and> meets S l"
+      using contained_point 
+      using lline by auto
+    obtain Q where Q: "Q \<in> Points \<and> Q \<noteq> S"
+      using a3 by auto
+    obtain line where line_def: "meets Q line \<and> meets S line \<and> line \<in> Lines"
+      using Q S a1 by blast
+    obtain Z where Z: "\<not> meets Z line \<and> Z \<in> Points"
+      using a3 line_def by fastforce
+    obtain lineprime where lineprime_def: "lineprime \<in> Lines \<and> meets Z lineprime \<and> line || lineprime"
+      using Z a2 line_def by blast
+    have parallel1: "l || lineprime" 
+      using S Z a line_def lineprime_def lline by force
+    have par2: "l || lineprime \<and> line || lineprime"
+      using lineprime_def parallel1 by blast
+    have not_eq: "l \<noteq> line"
+      using Q S a line_def by blast
+    have False
+      by (meson S affine_plane.symmetric_parallel affine_plane.transitive_parallel affine_plane_axioms line_def not_eq par2 parallel.elims(2)) 
+    thus "\<not> (\<exists> S T. S \<in> Points \<and> T \<in> Points \<and>  S\<noteq>T \<and> meets S l \<and> meets T l) \<Longrightarrow> False"
+      by simp
   qed
+
+lemma (in affine_plane) all_contained_points: "\<forall>l \<in> Lines. \<exists> S T. S \<in> Points \<and> T \<in> Points \<and>  S\<noteq>T \<and> meets S l \<and> meets T l"
+  using contained_points by auto
 
   text \<open>\done\<close>
 
-  section  \<open> The real affine plane\<close>
+  section  \<open>The real affine plane\<close>
   text \<open> Hartshorne mentioned, just after the definition of an affine plane and some notational 
 notes, that the ordinary affine plane is an example of an affine plane. We should prove 
 that it's actually an affine plane. It's pretty clear how to represent points --- pairs of real 
@@ -680,13 +740,14 @@ versions of the three axioms, etc., but it'd be nice to be able to say that as
 a *structure*, it matches the Isabelle "locale" that we defined. \caleb \seiji 
 \<close>
 
-theorem A2_affine: "affine_plane(a2meets)"
+theorem A2_affine: "affine_plane UNIV UNIV a2meets"
   unfolding affine_plane_def
   apply (intro conjI)
-  subgoal using A2_a1a A2_a1b by auto
+  subgoal using A2_a1
+    by simp
   subgoal
-    by (smt A2_a2 a2parallel_def affine_plane_data.parallel_def)
-  apply (simp add: affine_plane_data.collinear_def)
+    by (smt A2_a2a A2_a2b a2parallel_def affine_plane_data.parallel.simps iso_tuple_UNIV_I) 
+  apply (simp add: affine_plane_data.collinear.simps)
   using A2_a3 by auto
 
 
@@ -718,7 +779,7 @@ be the same line, which proves that at least two lines pass through T.
 (I'm still Struggling with the grammar in Isabelle. I’ll try to finish these two lemmas soon and
  I’m also looking for help ;)
 \siqi\<close>
-lemma (in affine_plane) contained_lines: "\<forall> S. \<exists>l m. l\<noteq>m \<and> meets S l \<and> meets S m"
+lemma (in affine_plane) contained_lines: "\<forall> S \<in> Points. \<exists>l m. l \<in> Lines \<and> m \<in> Lines \<and> l\<noteq>m \<and> meets S l \<and> meets S m"
 sorry 
 (*
 proof -
@@ -812,28 +873,31 @@ x. Similar (arguing about l), we get  S != R.
 
 xi. Hence the four points P,Q,R,S are all distinct, and we are done. 
 \caleb \seiji\<close>
-proposition (in affine_plane) four_points_necessary: "\<exists>(P :: 'point) (Q :: 'point) (R :: 'point) (S :: 'point). 
-      P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> P \<noteq> S \<and> Q \<noteq> S \<and> R \<noteq> S"
+proposition (in affine_plane) four_points_necessary: "\<exists>P Q R S. 
+      P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> S \<in> Points \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> P \<noteq> S \<and> Q \<noteq> S \<and> R \<noteq> S"
     proof -
-      obtain P Q R where PQR: "P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
+      obtain P Q R where PQR: "P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R"
         using a3 by blast
-      obtain PQ where PQ: "meets P PQ \<and> meets Q PQ" 
+      obtain PQ where PQ: "PQ \<in> Lines \<and> meets P PQ \<and> meets Q PQ" 
         using a1 PQR by blast
-      obtain l where l: "meets R l \<and> l || PQ"
-        by (metis PQ PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
-      obtain QR where QR: "meets Q QR \<and> meets R QR" 
+      obtain l where l: "l \<in> Lines \<and> meets R l \<and> l || PQ"
+        by (metis PQ PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear.simps)
+      obtain QR where QR: "QR \<in> Lines \<and> meets Q QR \<and> meets R QR"
         using a1 PQR by blast
-      obtain m where m: "meets P m \<and> m || QR"
-        by (metis QR PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear_def)
-      obtain S where S: "meets S l \<and> meets S m"
-        by (metis (no_types, lifting) PQ QR affine_plane.a2 affine_plane_axioms l m parallel_def)
+      obtain m where m: "m \<in> Lines \<and> meets P m \<and> m || QR"
+        by (metis QR PQR affine_plane.a2 affine_plane.symmetric_parallel affine_plane_axioms collinear.simps)
+      obtain S where S: "S \<in> Points \<and> meets S l \<and> meets S m"
+        using PQ QR affine_plane.a2 affine_plane_axioms l m 
+        by (metis PQR parallel.simps)
       have "S \<noteq> P \<and> S \<noteq> Q \<and> S \<noteq> R"
-        by (metis PQ PQR QR S affine_plane_data.collinear_def affine_plane_data.parallel_def l m)
+        by (metis PQ PQR QR S collinear.simps parallel.simps l m)
       thus ?thesis
-        using PQR by blast
+        using PQR
+        using S by blast
     qed
 
     text\<open>\done \done\<close>
+    section \<open>Free projective plane\<close>
     text\<open>\spike 
 We've now proved the first assertion in the Example after Prop 1.2; we must also show there
 IS an affine plane with four points. We'll do this two ways: by explicit construction, and
@@ -903,15 +967,21 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
      \<Longrightarrow> m = n"
     by (smt plmeets.elims(3) plmeets.simps(1) plmeets.simps(11) plmeets.simps(2) plmeets.simps(3) plmeets.simps(4) plmeets.simps(5) plmeets.simps(7) plmeets.simps(8) plmeets.simps(9) pts.simps(11) pts.simps(5) pts.simps(9))
 
+
+  lemma four_points_a2: 
+    "\<not> plmeets (P :: pts) (l :: lns) \<Longrightarrow> \<exists>!m. ((l = m)\<or> \<not> (\<exists> T. plmeets T l  \<and> plmeets T m)) \<and> plmeets P m" 
+    using four_points_a2a four_points_a2b
+    by auto
   lemma four_points_a3:  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<not> (\<exists> m. plmeets P m \<and> plmeets Q m \<and> plmeets R m))"
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
-proposition four_points_sufficient: "affine_plane plmeets"
+proposition four_points_sufficient: "affine_plane UNIV UNIV plmeets"
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
-    subgoal using four_points_a2a four_points_a2b by  (smt affine_plane_data.parallel_def plmeets.simps(11) plmeets.simps(12) plmeets.simps(24))
-    apply (simp add: affine_plane_data.collinear_def)
+    subgoal using four_points_a2 iso_tuple_UNIV_I
+      by (simp add: affine_plane_data.parallel.simps)
+    apply (simp add: affine_plane_data.collinear.simps)
     using four_points_a3 apply (blast)
     done
 
@@ -950,11 +1020,11 @@ $X$ an element $T(x)=y
 $\forall y \in Y, \exists x \in X$ such that $T(x)=y.$
 \end{hartshorne}
 \<close>
-  definition (in affine_plane_data) point_pencil :: "'point  \<Rightarrow> 'line set"
-    where "point_pencil P = {l . meets P l}"
+fun (in affine_plane_data) point_pencil :: "'p  \<Rightarrow> 'l set"
+    where "point_pencil P = (if P \<in> Points then {l . meets P l} else {})"
 
-  definition (in affine_plane_data) line_pencil :: "'line  \<Rightarrow> 'line set"
-    where "line_pencil l = {m .  l||m}"
+fun (in affine_plane_data) line_pencil :: "'l  \<Rightarrow> 'l set"
+    where "line_pencil l = (if l \<in> Lines then {m .  l||m} else {})"
 
 text  \<open> 
 \spike
@@ -978,7 +1048,8 @@ The main problem is that we really, really need quotient types; with luck, Haoze
 soon have worked these out for us so that we can proceed. 
 \done
 \<close>
-  
+
+section \<open>The projective plane\<close>
 text  \<open> 
 \begin{hartshorne}
 \section*{Ideal points and the projective plane}
@@ -1062,14 +1133,16 @@ with the work on the 7-point plane, etc.
 \done
 \<close>
   locale projective_plane_data =
-    fixes meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
+    fixes Points :: "'point set" and Lines :: "'line set" and meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool"
 
   begin
-    definition collinear :: "'point  \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
-      where "collinear A B C \<longleftrightarrow> (\<exists> l. meets A l \<and> meets B l \<and> meets C l)"
+    fun collinear :: "'point \<Rightarrow> 'point \<Rightarrow> 'point \<Rightarrow> bool"
+    where "collinear A B C = (if A \<in> Points \<and> B \<in> Points \<and> C \<in> Points 
+  then (\<exists> l. l \<in> Lines \<and> meets A l \<and> meets B l \<and> meets C l) else False)"
 
-    definition concurrent :: "'line  \<Rightarrow> 'line \<Rightarrow> 'line \<Rightarrow> bool"
-      where "concurrent l m n \<longleftrightarrow> (\<exists> P. meets P l \<and> meets P m \<and> meets P n)"
+    fun concurrent :: "'line  \<Rightarrow> 'line \<Rightarrow> 'line \<Rightarrow> bool"
+      where "concurrent l m n \<longleftrightarrow> (if l \<in> Lines \<and> m \<in> Lines \<and> n \<in> Lines then 
+  (\<exists> P. meets P l \<and> meets P m \<and> meets P n) else False)"
  
     definition injective :: "('a  \<Rightarrow> 'b)  \<Rightarrow> bool"
       where "injective f  \<longleftrightarrow> ( \<forall> P Q.  (f(P) = f(Q)) \<longleftrightarrow> (P = Q))" 
@@ -1077,36 +1150,17 @@ with the work on the 7-point plane, etc.
                         
 
   locale projective_plane =
-    projective_plane_data meets
-  for meets :: "'point \<Rightarrow> 'line \<Rightarrow> bool" +
+    projective_plane_data +
   assumes
-    p1: "P \<noteq> Q \<Longrightarrow> \<exists>!l. meets P l \<and> meets Q l" and
-    p2: "l \<noteq> m \<Longrightarrow> \<exists>!P. meets P l \<and> meets P m" and
-    p3: "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R" and
-    p4: "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> meets P l \<and> meets Q l \<and> meets R l"
+    p1: "\<lbrakk>P\<in>Points; Q \<in> Points; P \<noteq> Q\<rbrakk> \<Longrightarrow> \<exists>!l. l \<in> Lines \<and> meets P l \<and> meets Q l" and
+    p2: "\<lbrakk>l\<in> Lines; m \<in> Lines; l \<noteq> m\<rbrakk> \<Longrightarrow> \<exists>!P. P \<in> Points \<and>  meets P l \<and> meets P m" and
+    p3: "\<exists>P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> collinear P Q R" and
+    p4: "\<forall> l \<in> Lines. \<exists>P Q R. P \<in> Points \<and> Q \<in> Points \<and> R \<in> Points \<and> P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> meets P l \<and> meets Q l \<and> meets R l"
 
 begin
 
 (* right here is where many small theorems about projective planes should go, theorems like "any
 two lines in a projective plane have the same cardinality", etc. -- Spike *)
-
-lemma corresponding:
-  fixes m 
-  fixes k
-  fixes M1
-  fixes corresponding :: "'point \<Rightarrow> 'line \<Rightarrow> 'line \<Rightarrow> 'point"
-  assumes "m \<noteq> k"
-  shows "\<exists> K1 . meets K1 k \<and> corresponding M1 m k = K1"
-(* proof -
-  obtain T where T: "(\<not>(meets T m) \<and> \<not>(meets T k))"
-    using assms other_point by auto
-  obtain mt where "meets T mt \<and> meets M1 mt"
-    by (metis (full_types) projective_plane_axioms projective_plane_def)
-  obtain K1 where "meets K1 mt \<and> meets K1 k"
-    by (metis projective_plane_axioms projective_plane_def)
-  thus ?thesis try
-  qed *)
-    sorry
 
 text  \<open> 
 \spike
@@ -1118,24 +1172,28 @@ others that just arose during class.
 lemma pointOffLines:
   fixes l and m
   assumes "l \<noteq> m"
-  shows "\<exists>T. (\<not> meets T l) \<and> (\<not> meets T m)"
+  assumes lines: "l \<in> Lines \<and> m \<in> Lines"
+  shows "\<exists>T. T \<in> Points \<and> (\<not> meets T l) \<and> (\<not> meets T m)"
 proof -
-  obtain I where I: "meets I l \<and> meets I m" 
+  obtain I where I: "I \<in> Points \<and> meets I l \<and> meets I m" 
     using p2 assms by blast
-  obtain P where P: "meets P l \<and> P \<noteq> I" 
+  obtain P where P: "P \<in> Points \<and> meets P l \<and> P \<noteq> I" 
     using assms p4 I by metis
-  obtain Q where Q: "meets Q m \<and> Q \<noteq> I"
+  obtain Q where Q: "Q \<in> Points \<and> meets Q m \<and> Q \<noteq> I"
     using assms p4 I by metis
-   obtain PQ where PQ: "meets P PQ \<and> meets Q PQ"
-    using P Q p1 by metis
-  obtain R where R: "meets R PQ \<and> P \<noteq> R \<and> Q \<noteq> R"
-    using p4 by blast
+   obtain PQ where PQ: "PQ \<in> Lines \<and> meets P PQ \<and> meets Q PQ"
+    using P Q p1
+    using lines by fastforce
+  obtain R where R: "R \<in> Points \<and> meets R PQ \<and> P \<noteq> R \<and> Q \<noteq> R"
+    using p4 
+    by (metis PQ)
   have not_on_l: "\<not> meets R l"
-    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+    by (metis I P PQ Q R assms(1) lines p1)   
   have not_on_m: "\<not> meets R m"
-    by (metis (no_types, lifting) I P PQ Q R assms projective_plane_axioms projective_plane_def)
+    by (metis I P PQ Q R assms(1) lines p1)   
   thus ?thesis
-    using not_on_l by auto 
+    using not_on_l
+    using R by blast 
 qed
 
 end
@@ -1146,7 +1204,7 @@ end
 
   fun projectivize :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> (('a, 'b) projPoint \<Rightarrow> ('a, 'b) projLine \<Rightarrow> bool)" where
       "projectivize meets (Ordinary P) (OrdinaryL l) = meets P l" 
-    | "projectivize meets (Ideal l) (OrdinaryL m) = affine_plane_data.parallel meets l m"
+    | "projectivize meets (Ideal l) (OrdinaryL m) = affine_plane_data.parallel UNIV UNIV meets l m"
     | "projectivize meets (Ordinary P) Infty = False"
     | "projectivize meets (Ideal l) Infty = True"
 
@@ -1224,12 +1282,12 @@ lemma "pmeets_p1": "\<forall>P Q. P \<noteq> Q \<longrightarrow> (\<exists>!l. p
   sorry
 lemma "pmeets_p2": "\<forall>l m. l \<noteq> m \<longrightarrow> (\<exists>!P. pmeets P l \<and> pmeets P m)"
   sorry
-lemma "pmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear pmeets P Q R"
-  by (smt pmeets.simps(1) pmeets.simps(24) pmeets.simps(3) pmeets_p2 ppts.distinct(8) projective_plane_data.collinear_def)
+lemma "pmeets_p3": "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> \<not> projective_plane_data.collinear UNIV UNIV pmeets P Q R"
+  by (smt pmeets.simps(1) pmeets.simps(24) pmeets.simps(3) pmeets_p2 ppts.distinct(8) projective_plane_data.collinear.elims)
 lemma "pmeets_p4": "\<forall> l. \<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> pmeets P l \<and> pmeets Q l \<and> pmeets R l"
   sorry
 
-theorem "projective_plane pmeets"
+theorem "projective_plane UNIV UNIV pmeets"
   unfolding projective_plane_def
   using pmeets_p1 pmeets_p2 pmeets_p3 pmeets_p4 by auto
 
