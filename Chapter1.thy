@@ -146,11 +146,11 @@ text \<open>
 Here's the original proof of that theorem; apparently practice makes perfect (or at least it
 shortens things a good deal:
 \begin{lstlisting}[language=Isabelle]{}
-proof -
+proof 
     fix l :: "'line" and m :: "'line"
     assume one_direction: "l || m"
     show "m || l"
-    proof -
+    proof 
       have "(l = m \<or> \<not> (\<exists> P. meets P l  \<and> meets P m))" 
         using one_direction parallel_def by auto
       from this have "(m = l \<or> \<not> (\<exists> P. meets P m  \<and> meets P l))"
@@ -957,7 +957,7 @@ text\<open>\spike
     by (smt lns.simps(27) lns.simps(5) lns.simps(7) plmeets.elims(2) plmeets.simps(1) plmeets.simps(10) plmeets.simps(11) plmeets.simps(12) plmeets.simps(15) plmeets.simps(16) plmeets.simps(17) plmeets.simps(18) plmeets.simps(2) plmeets.simps(22) plmeets.simps(3) plmeets.simps(4) plmeets.simps(5) plmeets.simps(6) plmeets.simps(7) plmeets.simps(8) plmeets.simps(9) pts.exhaust)
 
 text\<open>\spike 
-Exercise: change the first "\<or>" in the lemma above to "\<and>"; that makes the lemma no longer true.
+Exercise: change the first "$\lor$" in the lemma above to "$\land$"; that makes the lemma no longer true.
 Attempt to prove it with "try" and then make sense of what the output is saying. 
 \done\<close>
 
@@ -1146,6 +1146,13 @@ with the work on the 7-point plane, etc.
  
     definition injective :: "('a  \<Rightarrow> 'b)  \<Rightarrow> bool"
       where "injective f  \<longleftrightarrow> ( \<forall> P Q.  (f(P) = f(Q)) \<longleftrightarrow> (P = Q))" 
+
+    definition points_of :: "'line \<Rightarrow> 'point set" where "points_of k = (if k \<in> Lines then {P \<in> Points . meets P k} else undefined)"
+    definition lines_of :: "'point \<Rightarrow> 'line set" where "lines_of P = (if P \<in> Points then {k \<in> Lines . meets P k} else undefined)"
+    
+    definition joinline :: "'point \<Rightarrow> 'point \<Rightarrow> 'line" where "joinline P Q = (if (P \<noteq> Q \<and> P \<in> Points \<and> Q \<in> Points)
+                                                                              then (THE l . l \<in> Lines \<and> meets P l \<and> meets Q l) 
+                                                                              else undefined)"
   end                   
                         
 
@@ -1195,6 +1202,230 @@ proof -
     using not_on_l
     using R by blast 
 qed
+
+text \<open>\homer\<close>
+
+(* joinline returns a unique line when conditions are met *)
+lemma joinline_exists:
+  fixes P and Q and x
+  assumes "P \<noteq> Q" and "x = (joinline P Q)" and "P \<in> Points" and "Q \<in> Points"
+  shows "x \<in> Lines \<and> meets P x \<and> meets Q x"
+proof -
+  show ?thesis using assms p1 [of P Q] joinline_def [of P Q] theI_unique by smt
+qed
+lemma joinline_unique:
+  fixes P and Q and x
+  assumes "P \<noteq> Q" and "x = (joinline P Q)" and "P \<in> Points" and "Q \<in> Points"
+  shows "\<nexists> y . y \<in> Lines \<and> meets P y \<and> meets Q y \<and> x \<noteq> y"
+proof -
+  show ?thesis using assms p1 [of P Q] joinline_def [of P Q] theI_unique by smt
+qed
+ 
+(* for a line and a point not on the line the number of lines that meet
+   the point is equal to the number of points on the line *)
+lemma line_point_off_bij:
+  fixes l and P
+  assumes "\<not> meets P l" and "P \<in> Points" and "l \<in> Lines"
+  shows "bij_betw (joinline P) (points_of l) (lines_of P)"
+proof -
+  have "inj_on (joinline P) (points_of l)"
+    using assms inj_onI joinline_exists joinline_unique mem_Collect_eq points_of_def projective_plane_axioms 
+    by smt
+  have "\<forall> m \<in> (lines_of P) . \<exists> Q \<in> (points_of l) . (joinline P Q) = m"
+    using assms joinline_unique lines_of_def mem_Collect_eq p2 points_of_def
+    by (metis (no_types, lifting))
+  then have "(joinline P) ` (points_of l) = (lines_of P)"
+    unfolding image_def points_of_def lines_of_def
+    using Collect_cong assms mem_Collect_eq joinline_exists projective_plane_axioms by smt
+  thus ?thesis
+    using \<open>inj_on (joinline P) (points_of l)\<close> bij_betw_def by blast
+qed
+
+(* for a line and a point on that line there exists another line that doesn't meet the point *)
+lemma second_line:
+  fixes l and P
+  assumes "meets P l" and "P \<in> Points" and "l \<in> Lines"
+  shows "\<exists> k . k \<in> Lines \<and> \<not> meets P k"
+proof -
+  obtain m where "m \<noteq> l \<and> m \<in> Lines"
+    by (metis (full_types) collinear.elims(3) p1 p3)
+  show ?thesis
+proof (cases "meets P m")
+  case False
+  then show ?thesis
+    using \<open>m \<noteq> l \<and> m \<in> Lines\<close> by blast
+next
+  case True
+  obtain X where "meets X l \<and> X \<noteq> P \<and> X \<in> Points"
+    using p4 assms(3) by blast
+  obtain Y where "meets Y m \<and> Y \<noteq> P \<and> Y \<in> Points"
+    using p4 \<open>m \<noteq> l \<and> m \<in> Lines\<close> by blast
+  then obtain k where "meets X k \<and> meets Y k \<and> k \<in> Lines"
+    using \<open>meets X l \<and> X \<noteq> P \<and> X \<in> Points\<close> joinline_exists assms(3) by metis
+  thus ?thesis
+    by (metis \<open>m \<noteq> l \<and> m \<in> Lines\<close> \<open>meets X l \<and> X \<noteq> P \<and> X \<in> Points\<close> \<open>meets Y m \<and> Y \<noteq> P \<and> Y \<in> Points\<close> assms(2) assms(3) joinline_unique)
+qed
+qed
+
+(* for every line and a point off that line the number of points on the line is equal to 
+   the number of lines that meet the point *)
+lemma line_point_off_same_card:
+  fixes l and P
+  assumes "\<not> meets P l" and "P \<in> Points" and "l \<in> Lines"
+  assumes "card (lines_of P) = n"
+  shows "card (points_of l) = n"
+  using assms bij_betw_same_card line_point_off_bij by blast
+
+(* for every line and point the number of points on the line is equal to 
+   the number of lines that meet the point *)
+lemma line_point_same_card:
+  fixes l and P
+  assumes "card (lines_of P) = n" and "P \<in> Points" and "l \<in> Lines"
+  shows "card (points_of l) = n"
+proof (cases "meets P l")
+  case True
+  obtain k where "k \<in> Lines \<and> \<not> meets P k" using second_line
+    using assms(2) assms(3) by auto
+  then obtain Q where "Q \<in> Points \<and> \<not> meets Q l \<and> \<not> meets Q k"
+    using pointOffLines True assms(3) by force
+  then have "bij_betw (joinline Q) (points_of l) (lines_of Q)"
+    using line_point_off_bij assms(3) by auto
+  have "bij_betw (joinline Q) (points_of k) (lines_of Q)"
+    using \<open>Q \<in> Points \<and> \<not> meets Q l \<and> \<not> meets Q k\<close> line_point_off_bij \<open>k \<in> Lines \<and> \<not> meets P k\<close> by auto
+  have "bij_betw (joinline P) (points_of k) (lines_of P)"
+    using \<open>k \<in> Lines \<and> \<not> meets P k\<close> line_point_off_bij assms(2) by simp
+  thus ?thesis
+    by (metis \<open>bij_betw (joinline Q) (points_of k) (lines_of Q)\<close> \<open>bij_betw (joinline Q) (points_of l) (lines_of Q)\<close> assms(1) bij_betw_same_card)
+next
+  case False
+  then have "bij_betw (joinline P) (points_of l) (lines_of P)" 
+    using line_point_off_bij assms(2) assms(3) by simp
+  then show ?thesis
+    using assms bij_betw_same_card by auto
+qed
+
+(* all lines have n points *)
+lemma lines_same_card: "\<exists> n . \<forall> l \<in> Lines . card(points_of l) = n"
+  using line_point_same_card p3 by blast
+
+(* all points meet n lines *)
+lemma points_same_card: "\<exists> n . \<forall> P \<in> Points . card(lines_of k) = n"
+  using line_point_same_card by auto
+
+(* removing an element from a set reduces cardinality by 1 *)
+lemma minus_card:
+  fixes C and q
+  assumes "q \<in> C" and "card C = n"
+  shows "card (C - {q}) = n - 1"
+  by (simp add: assms card_Diff_subset)
+
+(* if a line has n points, the plane has n*(n-1) + 1 points *)
+lemma line_points_to_plane_points:
+  fixes l
+  assumes "l \<in> Lines" 
+  assumes "n = card(points_of l)" and "finite (points_of l)"
+  shows "card Points = n * (n-1) + 1"
+proof -
+  obtain Q where 0: "Q \<in> Points \<and> meets Q l"
+    using p4 assms(1) by auto
+  obtain Q_lines where 1: "Q_lines = lines_of Q" by simp
+  then have 2: "card(Q_lines) = n"
+    using assms(2) line_point_same_card 0 assms(1) by auto
+  have 3: "finite Q_lines"
+    using 1 assms(3) 0 assms(1) bij_betw_finite line_point_off_bij pointOffLines second_line 
+    by metis
+  have 4: "\<forall> x \<in> Q_lines . x \<in> Lines"
+    using 1 lines_of_def 0 by simp
+  have 5: "inj_on points_of Q_lines"
+  proof (rule ccontr)
+    assume 6: "\<not> inj_on points_of Q_lines"
+    then obtain x y where 7: "x \<in> Lines \<and> y \<in> Lines \<and> x \<noteq> y \<and> (points_of x) = (points_of y)"
+      by (meson 4 inj_on_def)
+    then obtain R S where 8: "R \<in> Points \<and> S \<in> Points \<and> meets R x \<and> meets S x \<and> R \<noteq> S"
+      using p2 p4 by auto
+    then have 9: "R \<in> points_of x \<and> S \<in> points_of x"
+      using points_of_def 7 by simp
+    then have 10: "R \<in> points_of y \<and> S \<in> points_of y"
+      using 7 by simp
+    then have 11: "meets R y \<and> meets S y"
+      using points_of_def 7 by simp
+    then show False using p1 7 8 by auto
+  qed
+  obtain Q_lines_points where 13: "Q_lines_points = points_of ` Q_lines" by simp
+  then have 14: "\<forall> x \<in> Q_lines_points . \<forall> y \<in> Q_lines_points . x \<noteq> y \<longrightarrow> (\<nexists> P . P \<in> Points \<and> P \<in> x \<and> P \<in> y \<and> P \<noteq> Q)"
+    using 1 imageE lines_of_def mem_Collect_eq p1 points_of_def 0 by smt
+  have 15: "card Q_lines_points = n"
+    using card_image 5 13 2 by blast
+  have 16: "finite Q_lines_points"
+    using 3 by (simp add: 13)
+  have 17: "\<forall> m \<in> Lines . finite (points_of m)"
+    using assms(1) assms(3) bij_betw_finite line_point_off_bij pointOffLines by metis
+  then have 18: "\<forall> m \<in> Q_lines . finite (points_of m)"
+    by (simp add: 1 0 lines_of_def)
+  then have 19: "finite (\<Union> Q_lines_points)"
+    using 3 finite_UN 13 by simp
+  have 20: "\<forall> x \<in> \<Union> Q_lines_points . x \<in> Points"
+    using 13 points_of_def 4 by simp
+  have 21: "\<forall> k \<in> Q_lines_points . Q \<in> k"
+    using 1 13 lines_of_def points_of_def 0 assms(1) by simp
+  have 23: "\<forall> k \<in> Q_lines_points . card k = n"
+    using 13 assms lines_same_card 4 by auto
+  obtain Q_lines_points_no_Q where 24: "Q_lines_points_no_Q = (\<lambda>x. x - {Q}) ` Q_lines_points"
+    by simp
+  have 25: "inj_on (\<lambda>x. x - {Q}) Q_lines_points"
+  proof (rule ccontr)
+    assume 26: "\<not> inj_on (\<lambda>x. x - {Q}) Q_lines_points"
+    then obtain A B where 27: "A \<in> Q_lines_points \<and> B \<in> Q_lines_points \<and> (\<lambda>x. x - {Q}) A = (\<lambda>x. x - {Q}) B \<and> A \<noteq> B"
+      using inj_on_def
+      by (metis (mono_tags, lifting))
+    then obtain R where 28: "R \<in> Points \<and> R \<in> A \<and> R \<in> B \<and> R \<noteq> Q"
+      using p2 p4 21 by auto
+    then obtain a b where 29: "a \<in> Lines \<and> b \<in> Lines \<and> meets R a \<and> meets Q a \<and> meets R b \<and> meets Q b \<and> a \<noteq> b"
+      using 27 21 by auto
+    then show False using p1 0 28 by auto
+  qed
+  then have 30: "card Q_lines_points_no_Q = n"
+    using 15 card_image 24 by blast
+  have 31: "finite Q_lines_points_no_Q"
+    using 16 24 by simp
+  then have 32: "finite (\<Union> Q_lines_points_no_Q)"
+    using 19 24 by simp
+  have 33: "\<forall> r \<in> Q_lines_points_no_Q . \<forall> s \<in> Q_lines_points_no_Q . r \<noteq> s \<longrightarrow> r \<inter> s = {}"
+    using 14 24 20 by auto
+  have 34: "\<forall> k \<in> Q_lines_points_no_Q . card k = n - 1"
+    using 21 23 24 minus_card by force
+  then have 35: "(n - 1) * card(Q_lines_points_no_Q) = card(\<Union> Q_lines_points_no_Q)"
+    by (simp add: 33 31 32 card_partition)
+  then have 36: "card(\<Union> Q_lines_points_no_Q) = (n - 1) * n" 
+    using 30 by simp
+  have 37: "\<nexists> R . R \<in> Points \<and> R \<notin> \<Union> Q_lines_points"
+  proof (rule ccontr)
+    assume 38: "\<not> (\<nexists> R . R \<in> Points \<and> R \<notin> \<Union> Q_lines_points)"
+    then obtain R where 39: "R \<in> Points \<and> R \<notin> \<Union> Q_lines_points" by auto
+    then obtain k where 40: "k \<in> Lines \<and> meets R k \<and> meets Q k"
+      using p1 0 assms(1) by blast
+    then have 41: "k \<in> Q_lines" using 1 lines_of_def 0 by simp
+    have 42: "R \<in> (points_of k)" using 40 points_of_def
+      by (simp add: 39)
+    then have 43: "R \<in> \<Union> Q_lines_points" using 41 13 by auto
+    then show False using 39 43 by blast
+  qed
+  have 45: "\<Union> Q_lines_points \<subseteq> Points" using 20 by auto
+  have 46: "Points \<subseteq> \<Union> Q_lines_points"
+    using 37 by blast
+  have 47: "Points = \<Union> Q_lines_points"
+    by (simp add: 46 45 set_eq_subset)
+  have 48: "\<Union> Q_lines_points_no_Q = (\<Union> Q_lines_points) - {Q}" using 13 24 by simp
+  then have 50: "card (\<Union> Q_lines_points_no_Q) = card (Points - {Q})" using 47 by simp
+  have 51: "Q \<in> Points \<and> {Q} \<subseteq> Points"
+    by (simp add: 0)
+  then have 53: "card (Points - {Q}) = card Points - card {Q}" by (simp add: card_Diff_subset)
+  then have 54: "card Points = card (\<Union> Q_lines_points_no_Q) + card {Q}"
+    by (metis 47 50 19 51 card_mono le_add_diff_inverse2)  
+  show ?thesis using 54 36 by simp
+qed
+
+text \<open>\done\<close>
 
 end
 
@@ -1298,15 +1529,6 @@ theorem projectivization_p1: "\<lbrakk>P \<noteq> Q; affine_plane meets; pm = pr
 sorry 
 *)
 
-(*
-[This theorem should probably move up to just below the axioms for a projective plane -- jfh]
-
-attempt to state a theorem about the the relation between the number of points on a line and
-the number of points in the projective plane - Homer
-lemma line_points_to_plane_points: "\<lbrakk>affine_plane meets; pm = projectivize meets\<rbrakk> \<Longrightarrow> 
-        \<forall> l . card({P . pm P l}) = n \<longrightarrow> card({Q . \<exists> k . pm Q k}) = (n-1)^2 + n"
-  sorry
-*)
 end
 
 
