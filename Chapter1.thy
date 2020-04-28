@@ -972,10 +972,46 @@ Attempt to prove it with "try" and then make sense of what the output is saying.
     "\<not> plmeets (P :: pts) (l :: lns) \<Longrightarrow> \<exists>!m. ((l = m)\<or> \<not> (\<exists> T. plmeets T l  \<and> plmeets T m)) \<and> plmeets P m" 
     using four_points_a2a four_points_a2b
     by auto
+
   lemma four_points_a3:  "\<exists>P Q R. P \<noteq> Q \<and> P \<noteq> R \<and> Q \<noteq> R \<and> (\<not> (\<exists> m. plmeets P m \<and> plmeets Q m \<and> plmeets R m))"
     using four_points_a1 plmeets.simps(1) plmeets.simps(13) plmeets.simps(2) by blast
 
+text\<open>\spike 
+We now prove that the four-point plane is in fact an affine plane (which should surprise no 
+one who's gotten this far). There are two proofs of this given below. The second one was one 
+discovered by sledgehammer, and is an "apply-style" proof, i.e., the kind of proof that was common 
+in Isabelle before Isar. The first is an Isar-style proof that's based on the apply-style proof (i.e., 
+we took the second proof in class and collectively converted it, line by line, to the Isar 
+proof. The Isar proof is quite a lot longer, partly because we didn't know how to say "let's work 
+on just goal 1" and instead had to paste in all of goal 1 (or 2, or 3, or whatever). 
+\done\<close>
+
+
+
 proposition four_points_sufficient: "affine_plane UNIV UNIV plmeets"
+proof -
+  show ?thesis unfolding affine_plane_def 
+  proof (rule conjI)
+    show " \<forall>P Q. P \<noteq> Q \<longrightarrow> P \<in> UNIV \<longrightarrow> Q \<in> UNIV \<longrightarrow>
+          (\<exists>!l. l \<in> UNIV \<and> plmeets P l \<and> plmeets Q l)"
+      using four_points_a1 by simp
+    show ax1: "(\<forall>P l. \<not> plmeets P l \<longrightarrow> P \<in> UNIV \<longrightarrow> l \<in> UNIV \<longrightarrow>
+           (\<exists>!m. m \<in> UNIV \<and> affine_plane_data.parallel  UNIV UNIV plmeets l m \<and> plmeets P m)) \<and>
+    (\<exists>P Q R. P \<in> UNIV \<and>Q \<in> UNIV \<and> R \<in> UNIV \<and> P \<noteq> Q \<and>  P \<noteq> R \<and> Q \<noteq> R \<and>
+        \<not> affine_plane_data.collinear UNIV UNIV plmeets P Q R)"
+    proof (rule conjI)
+      show ax2: " \<forall>P l. \<not> plmeets P l \<longrightarrow> P \<in> UNIV \<longrightarrow> l \<in> UNIV \<longrightarrow>
+          (\<exists>!m. m \<in> UNIV \<and> affine_plane_data.parallel UNIV UNIV plmeets l m \<and>plmeets P m)" 
+        using four_points_a2 iso_tuple_UNIV_I
+        by (simp add: affine_plane_data.parallel.simps)
+      show ax3: "\<exists>P Q R. P \<in> UNIV \<and> Q \<in> UNIV \<and> R \<in> UNIV \<and> P \<noteq> Q \<and> P \<noteq> R \<and>  Q \<noteq> R \<and>
+                \<not> affine_plane_data.collinear UNIV UNIV plmeets P Q R" 
+        using four_points_a3 by (simp add:affine_plane_data.collinear.simps)
+    qed
+  qed
+qed
+
+proposition four_points_sufficient2: "affine_plane UNIV UNIV plmeets"
     unfolding affine_plane_def
     apply (intro conjI)
     subgoal using four_points_a1 by simp
